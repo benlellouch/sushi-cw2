@@ -1,17 +1,12 @@
 package comp1206.sushi.server;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Random;
-
-import javax.swing.JOptionPane;
-
+import comp1206.sushi.Configuration;
 import comp1206.sushi.common.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.*;
+import java.util.Map.Entry;
  
 public class Server implements ServerInterface {
 
@@ -27,31 +22,32 @@ public class Server implements ServerInterface {
 	public ArrayList<User> users = new ArrayList<User>();
 	public ArrayList<Postcode> postcodes = new ArrayList<Postcode>();
 	private ArrayList<UpdateListener> listeners = new ArrayList<UpdateListener>();
-	
+
 	public Server() {
         logger.info("Starting up server...");
+//        loadConfiguration("Configuration.txt");
 		
 		Postcode restaurantPostcode = new Postcode("SO17 1BJ");
 		restaurant = new Restaurant("Mock Restaurant",restaurantPostcode);
-		
+
 		Postcode postcode1 = addPostcode("SO17 1TJ");
 		Postcode postcode2 = addPostcode("SO17 1BX");
 		Postcode postcode3 = addPostcode("SO17 2NJ");
 		Postcode postcode4 = addPostcode("SO17 1TW");
 		Postcode postcode5 = addPostcode("SO17 2LB");
-		
+
 		Supplier supplier1 = addSupplier("Supplier 1",postcode1);
 		Supplier supplier2 = addSupplier("Supplier 2",postcode2);
 		Supplier supplier3 = addSupplier("Supplier 3",postcode3);
-		
+
 		Ingredient ingredient1 = addIngredient("Ingredient 1","grams",supplier1,1,5,1);
 		Ingredient ingredient2 = addIngredient("Ingredient 2","grams",supplier2,1,5,1);
 		Ingredient ingredient3 = addIngredient("Ingredient 3","grams",supplier3,1,5,1);
-		
+
 		Dish dish1 = addDish("Dish 1","Dish 1",1,1,10);
 		Dish dish2 = addDish("Dish 2","Dish 2",2,1,10);
 		Dish dish3 = addDish("Dish 3","Dish 3",3,1,10);
-		
+
 		orders.add(new Order());
 
 		addIngredientToDish(dish1,ingredient1,1);
@@ -60,11 +56,11 @@ public class Server implements ServerInterface {
 		addIngredientToDish(dish2,ingredient3,1);
 		addIngredientToDish(dish3,ingredient1,2);
 		addIngredientToDish(dish3,ingredient3,1);
-		
+
 		addStaff("Staff 1");
 		addStaff("Staff 2");
 		addStaff("Staff 3");
-		
+
 		addDrone(1);
 		addDrone(2);
 		addDrone(3);
@@ -295,7 +291,13 @@ public class Server implements ServerInterface {
 
 	@Override
 	public void loadConfiguration(String filename) {
-		System.out.println("Loaded configuration: " + filename);
+	    System.out.println("Loaded configuration: " + filename);
+        Configuration configuration = new Configuration(filename);
+        postcodes = configuration.getPostcodes();
+        restaurant = configuration.getRestaurant();
+        suppliers = configuration.getSuppliers();
+        this.notifyAll();
+
 	}
 
 	@Override
