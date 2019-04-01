@@ -31,14 +31,17 @@ public class Configuration {
     public Configuration(String fileName, Server server){
         this.server = server;
         this.fileName= fileName;
-        getPostcodes();
         getRestaurant();
+        getPostcodes();
         getSuppliers();
         getIngredients();
         getDishes();
         getStock();
         getUsers();
         getDrone();
+        getStaff();
+//        getOrders();
+
 //        try {
 //            file = new FileReader(fileName);
 //            reader = new BufferedReader(file);
@@ -61,7 +64,7 @@ public class Configuration {
             while ((line = reader.readLine()) != null) {
                 String[] words = line.split(":");
                 if (words[0].equals("POSTCODE")){
-                    Postcode postcode = new Postcode(words[1]);
+                    Postcode postcode = new Postcode(words[1], restaurant);
                     postcodeArrayList.add(postcode);
                 }
             }
@@ -85,7 +88,7 @@ public class Configuration {
             while ((line = reader.readLine()) != null) {
                 String[] words = line.split(":");
                 if (words[0].equals("RESTAURANT")){
-                    restaurant = new Restaurant(words[1], postcodeArrayList.get(0));
+                    restaurant = new Restaurant(words[1], new Postcode(words[2]));
                 }
             }
             file.close();
@@ -227,7 +230,7 @@ public class Configuration {
                          ) {
                         if (postcode.getName().equals(words[4])){
                             User user = new User(words[1],words[2],words[3],postcode);
-
+                            userArrayList.add(user);
                         }
                     }
 
@@ -295,16 +298,39 @@ public class Configuration {
 
             while ((line = reader.readLine()) != null) {
                 String[] words = line.split(":");
+                Order order = null;
                 if (words[0].equals("ORDER")){
+                    for (User user: userArrayList
+                         ) {
+                        if (words[1].equals(user.getName())) {
+                            order = new Order(user);
+
+
+                        }
+                    }
+                    String[] dishes = words[2].split(",");
+                    for (String dish:dishes
+                    ) {
+                        String[] amountAndName = dish.split(" ");
+                        for(Dish newDish: dishArrayList) {
+                            if (amountAndName[2].equals(newDish.getName())) {
+                                server.addDishtoOrder(order,newDish, NumberFormat.getInstance().parse(amountAndName[0]));
+                            }
+                        }
+                    }
 
                 }
+                server.orders.add(order);
             }
             file.close();
             reader.close();
-            server.staff = staffArrayList;
+
             return orderArrayList;
 
+
         }catch(IOException e){
+
+        }catch (ParseException e){
 
         }
 

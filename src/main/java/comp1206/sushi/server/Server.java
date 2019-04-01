@@ -5,7 +5,6 @@ import comp1206.sushi.common.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.swing.*;
 import java.util.*;
 import java.util.Map.Entry;
  
@@ -23,6 +22,8 @@ public class Server implements ServerInterface {
 	public ArrayList<User> users = new ArrayList<User>();
 	public ArrayList<Postcode> postcodes = new ArrayList<Postcode>();
 	private ArrayList<UpdateListener> listeners = new ArrayList<UpdateListener>();
+	private Map<Ingredient, Number> ingredientStock = new HashMap<>();
+	private Map<Dish, Number> dishStock = new HashMap<>();
 
 	public Server(String Filename){
 
@@ -33,7 +34,11 @@ public class Server implements ServerInterface {
 //        loadConfiguration("Configuration.txt");
 		
 		Postcode restaurantPostcode = new Postcode("SO17 1BJ");
-		restaurant = new Restaurant("Mock Restaurant",restaurantPostcode);
+		restaurant = new Restaurant("Southampton Sushi",restaurantPostcode);
+
+//
+//
+//
 //
 //		Postcode postcode1 = addPostcode("SO17 1TJ");
 //		Postcode postcode2 = addPostcode("SO17 1BX");
@@ -53,7 +58,7 @@ public class Server implements ServerInterface {
 //		Dish dish2 = addDish("Dish 2","Dish 2",2,1,10);
 //		Dish dish3 = addDish("Dish 3","Dish 3",3,1,10);
 //
-//		orders.add(new Order());
+////		orders.add(new Order());
 //
 //		addIngredientToDish(dish1,ingredient1,1);
 //		addIngredientToDish(dish1,ingredient2,2);
@@ -69,6 +74,12 @@ public class Server implements ServerInterface {
 //		addDrone(1);
 //		addDrone(2);
 //		addDrone(3);
+//
+//        Postcode newPostcode = new Postcode("SO17 1BX", restaurant);
+//        User user = new User("User", "Password", "Lol", newPostcode);
+//        Order order = new Order(user);
+//        addDishtoOrder(order,dish1,3);
+//        orders.add(order);
 	}
 	
 	@Override
@@ -92,13 +103,14 @@ public class Server implements ServerInterface {
 
 	@Override
 	public Map<Dish, Number> getDishStockLevels() {
-		Random random = new Random();
-		List<Dish> dishes = getDishes();
-		HashMap<Dish, Number> levels = new HashMap<Dish, Number>();
-		for(Dish dish : dishes) {
-			levels.put(dish,random.nextInt(50));
-		}
-		return levels;
+//		Random random = new Random();
+//		List<Dish> dishes = getDishes();
+//		HashMap<Dish, Number> levels = new HashMap<Dish, Number>();
+//		for(Dish dish : dishes) {
+//			levels.put(dish,random.nextInt(50));
+//		}
+//		return levels;
+		return dishStock;
 	}
 	
 	@Override
@@ -113,12 +125,12 @@ public class Server implements ServerInterface {
 	
 	@Override
 	public void setStock(Dish dish, Number stock) {
-	
+		dishStock.put(dish, stock);
 	}
 
 	@Override
 	public void setStock(Ingredient ingredient, Number stock) {
-		
+		ingredientStock.put(ingredient,stock);
 	}
 
 	@Override
@@ -213,19 +225,25 @@ public class Server implements ServerInterface {
 	
 	@Override
 	public Number getOrderCost(Order order) {
-		Random random = new Random();
-		return random.nextInt(100);
+	    double cost = 0;
+		Map<Dish, Number> dishes = order.getDishes();
+        for (Entry<Dish, Number> cursor: dishes.entrySet()
+             ) {
+            cost += (cursor.getKey().getPrice().doubleValue()) * (cursor.getValue().doubleValue());
+        }
+        return cost;
 	}
 
 	@Override
 	public Map<Ingredient, Number> getIngredientStockLevels() {
-		Random random = new Random();
-		List<Ingredient> dishes = getIngredients();
-		HashMap<Ingredient, Number> levels = new HashMap<Ingredient, Number>();
-		for(Ingredient ingredient : ingredients) {
-			levels.put(ingredient,random.nextInt(50));
-		}
-		return levels;
+//		Random random = new Random();
+//		List<Ingredient> dishes = getIngredients();
+//		HashMap<Ingredient, Number> levels = new HashMap<Ingredient, Number>();
+//		for(Ingredient ingredient : ingredients) {
+//			levels.put(ingredient,random.nextInt(50));
+//		}
+//		return levels;
+		return ingredientStock;
 	}
 
 	@Override
@@ -258,6 +276,10 @@ public class Server implements ServerInterface {
 		dish.getRecipe().remove(ingredient);
 		this.notifyUpdate();
 	}
+
+	public void addDishtoOrder(Order order, Dish dish, Number quantity){
+	    order.getDishes().put(dish,quantity);
+    }
 
 	@Override
 	public Map<Ingredient, Number> getRecipe(Dish dish) {
@@ -297,9 +319,9 @@ public class Server implements ServerInterface {
 	@Override
 	public void loadConfiguration(String filename) {
 	    System.out.println("Loaded configuration: " + filename);
-        Server newServer = new Server();
-        Configuration configuration = new Configuration(filename, newServer);
-        SwingUtilities.invokeLater(()-> new ServerWindow(newServer));
+//        Server newServer = new Server();
+        Configuration configuration = new Configuration(filename, this);
+//        SwingUtilities.invokeLater(()-> new ServerWindow(newServer));
 
 	}
 
