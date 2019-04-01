@@ -37,10 +37,11 @@ public class Configuration {
         getIngredients();
         getDishes();
         getStock();
-        getUsers();
         getDrone();
         getStaff();
-//        getOrders();
+        getUsers();
+        getOrders();
+
 
 //        try {
 //            file = new FileReader(fileName);
@@ -64,13 +65,14 @@ public class Configuration {
             while ((line = reader.readLine()) != null) {
                 String[] words = line.split(":");
                 if (words[0].equals("POSTCODE")){
-                    Postcode postcode = new Postcode(words[1], restaurant);
-                    postcodeArrayList.add(postcode);
+//                    Postcode postcode = new Postcode(words[1], restaurant);
+//                    postcodeArrayList.add(postcode);
+                    server.addPostcode(words[1]);
                 }
             }
             file.close();
             reader.close();
-            server.postcodes = postcodeArrayList;
+//            server.postcodes = postcodeArrayList;
             return postcodeArrayList;
 
         }catch(IOException e){
@@ -110,18 +112,19 @@ public class Configuration {
             while ((line = reader.readLine()) != null) {
                 String[] words = line.split(":");
                 if (words[0].equals("SUPPLIER")){
-                    for (Postcode postcode: postcodeArrayList
+                    for (Postcode postcode: server.getPostcodes()
                          ) {
                         if (postcode.getName().equals(words[2])){
-                            Supplier supplier = new Supplier(words[1],postcode);
-                            supplierArrayList.add(supplier);
+//                            Supplier supplier = new Supplier(words[1],postcode);
+//                            supplierArrayList.add(supplier);
+                            server.addSupplier(words[1],postcode);
                         }
                     }
                 }
             }
             file.close();
             reader.close();
-            server.suppliers = supplierArrayList;
+//            server.suppliers = supplierArrayList;
             return supplierArrayList;
         }catch(IOException e){
 
@@ -138,18 +141,19 @@ public class Configuration {
             while ((line = reader.readLine()) != null) {
                 String[] words = line.split(":");
                 if (words[0].equals("INGREDIENT")){
-                    for (Supplier supplier: supplierArrayList
+                    for (Supplier supplier: server.getSuppliers()
                     ) {
                         if (supplier.getName().equals(words[3])){
-                            Ingredient ingredient = new Ingredient(words[1],words[2],supplier, NumberFormat.getInstance().parse(words[4]),NumberFormat.getInstance().parse(words[5]),NumberFormat.getInstance().parse(words[6]));
-                            ingredientArrayList.add(ingredient);
+                            server.addIngredient(words[1],words[2],supplier, NumberFormat.getInstance().parse(words[4]),NumberFormat.getInstance().parse(words[5]),NumberFormat.getInstance().parse(words[6]));
+//                            Ingredient ingredient = new Ingredient(words[1],words[2],supplier, NumberFormat.getInstance().parse(words[4]),NumberFormat.getInstance().parse(words[5]),NumberFormat.getInstance().parse(words[6]));
+//                            ingredientArrayList.add(ingredient);
                         }
                     }
                 }
             }
             file.close();
             reader.close();
-            server.ingredients = ingredientArrayList;
+//            server.ingredients = ingredientArrayList;
             return ingredientArrayList;
         }catch(IOException e){
 
@@ -170,13 +174,14 @@ public class Configuration {
             while ((line = reader.readLine()) != null) {
                 String[] words = line.split(":");
                 if (words[0].equals("STAFF")){
-                    Staff staff = new Staff(words[1]);
-                    staffArrayList.add(staff);
+                    server.addStaff(words[1]);
+//                    Staff staff = new Staff(words[1]);
+//                    staffArrayList.add(staff);
                 }
             }
             file.close();
             reader.close();
-            server.staff = staffArrayList;
+//            server.staff = staffArrayList;
             return staffArrayList;
 
         }catch(IOException e){
@@ -198,13 +203,14 @@ public class Configuration {
             while ((line = reader.readLine()) != null) {
                 String[] words = line.split(":");
                 if (words[0].equals("DRONE")){
-                    Drone drone = new Drone(NumberFormat.getInstance().parse(words[1]));
-                    droneArrayList.add(drone);
+//                    Drone drone = new Drone(NumberFormat.getInstance().parse(words[1]));
+//                    droneArrayList.add(drone);
+                    server.addDrone(NumberFormat.getInstance().parse(words[1]));
                 }
             }
             file.close();
             reader.close();
-            server.drones = droneArrayList;
+//            server.drones = droneArrayList;
             return droneArrayList;
 
         }catch(IOException e){
@@ -226,7 +232,7 @@ public class Configuration {
             while ((line = reader.readLine()) != null) {
                 String[] words = line.split(":");
                 if (words[0].equals("USER")){
-                    for (Postcode postcode: postcodeArrayList
+                    for (Postcode postcode: server.getPostcodes()
                          ) {
                         if (postcode.getName().equals(words[4])){
                             User user = new User(words[1],words[2],words[3],postcode);
@@ -266,7 +272,7 @@ public class Configuration {
                     for (String ingredient:ingredients
                          ) {
                         String[] amountAndName = ingredient.split(" ");
-                        for(Ingredient newIngredient: ingredientArrayList) {
+                        for(Ingredient newIngredient: server.getIngredients()) {
                             if (amountAndName[2].equals(newIngredient.getName())) {
                                 server.addIngredientToDish(dish, newIngredient, NumberFormat.getInstance().parse(amountAndName[0]));
                             }
@@ -298,29 +304,35 @@ public class Configuration {
 
             while ((line = reader.readLine()) != null) {
                 String[] words = line.split(":");
-                Order order = null;
+
                 if (words[0].equals("ORDER")){
-                    for (User user: userArrayList
+
+                    Order order =null;
+
+                    for (User user: server.getUsers()
                          ) {
                         if (words[1].equals(user.getName())) {
-                            order = new Order(user);
-
+                            order = server.addOrder(user);
 
                         }
+
                     }
                     String[] dishes = words[2].split(",");
-                    for (String dish:dishes
-                    ) {
+                    for (String dish: dishes) {
                         String[] amountAndName = dish.split(" ");
-                        for(Dish newDish: dishArrayList) {
-                            if (amountAndName[2].equals(newDish.getName())) {
+                        String name = amountAndName[2]+ " "+amountAndName[3];
+                        for(Dish newDish: server.getDishes()) {
+                            System.out.println(name + " and the newDish: " + newDish.getName() +  " length of array");
+
+                            if (name.equals(newDish.getName())) {
                                 server.addDishtoOrder(order,newDish, NumberFormat.getInstance().parse(amountAndName[0]));
+                                System.out.println(amountAndName[0]);
                             }
                         }
                     }
 
                 }
-                server.orders.add(order);
+
             }
             file.close();
             reader.close();
@@ -331,7 +343,7 @@ public class Configuration {
         }catch(IOException e){
 
         }catch (ParseException e){
-
+            System.out.println("Wow that's gay");
         }
 
         return null;
@@ -380,18 +392,31 @@ public class Configuration {
             FileReader file = new FileReader("Configuration.txt");
             BufferedReader reader = new BufferedReader(file);
             String line;
+            Server server = new Server();
+
 
 
 
             while ((line = reader.readLine()) != null) {
                 String[] words = line.split(":");
-                if (words[0].equals("DISH")) {
-                   String[] ingredients = words[6].split(",");
-                    for (String ingredient: ingredients
-                         ) {
-                        String[] AmountandName = ingredient.split(" ");
-                        System.out.println(AmountandName[0] + " " + AmountandName[2]);
+                if (words[0].equals("ORDER")){
+
+                    for (User user: server.getUsers()
+                    ) {
+                        if (words[1].equals(user.getName())) {
+                            Order order = server.addOrder(user);
+                            String[] dishes = words[2].split(",");
+                            for (String dish: dishes) {
+                                String[] amountAndName = dish.split(" ");
+                                for(Dish newDish: server.getDishes()) {
+                                    if (amountAndName[2].equals(newDish.getName())) {
+                                        server.addDishtoOrder(order,newDish, NumberFormat.getInstance().parse(amountAndName[0]));
+                                    }
+                                }
+                            }
+                        }
                     }
+
                 }
 
             }
@@ -399,7 +424,7 @@ public class Configuration {
 
         }catch(IOException e){
 
-        }
+        } catch(ParseException e){}
 
     }
 }

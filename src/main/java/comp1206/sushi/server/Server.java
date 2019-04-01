@@ -54,7 +54,7 @@ public class Server implements ServerInterface {
 //		Ingredient ingredient2 = addIngredient("Ingredient 2","grams",supplier2,1,5,1);
 //		Ingredient ingredient3 = addIngredient("Ingredient 3","grams",supplier3,1,5,1);
 //
-//		Dish dish1 = addDish("Dish 1","Dish 1",1,1,10);
+		Dish dish1 = addDish("Dish 1","Dish 1",1,1,10);
 //		Dish dish2 = addDish("Dish 2","Dish 2",2,1,10);
 //		Dish dish3 = addDish("Dish 3","Dish 3",3,1,10);
 //
@@ -75,11 +75,12 @@ public class Server implements ServerInterface {
 //		addDrone(2);
 //		addDrone(3);
 //
-//        Postcode newPostcode = new Postcode("SO17 1BX", restaurant);
-//        User user = new User("User", "Password", "Lol", newPostcode);
-//        Order order = new Order(user);
-//        addDishtoOrder(order,dish1,3);
-//        orders.add(order);
+        Postcode newPostcode = new Postcode("SO17 1BX", restaurant);
+        User user = new User("User", "Password", "Lol", newPostcode);
+        Order order = new Order(user);
+        orders.add(order);
+        addDishtoOrder(order,dish1,3);
+
 	}
 	
 	@Override
@@ -293,7 +294,7 @@ public class Server implements ServerInterface {
 
 	@Override
 	public Postcode addPostcode(String code) {
-		Postcode mock = new Postcode(code);
+		Postcode mock = new Postcode(code, restaurant);
 		this.postcodes.add(mock);
 		this.notifyUpdate();
 		return mock;
@@ -320,6 +321,16 @@ public class Server implements ServerInterface {
 	public void loadConfiguration(String filename) {
 	    System.out.println("Loaded configuration: " + filename);
 //        Server newServer = new Server();
+        dishes.clear();
+        drones.clear();
+        ingredients.clear();
+        orders.clear();
+        users.clear();
+        staff.clear();
+        ingredientStock.clear();
+        dishStock.clear();
+        suppliers.clear();
+        postcodes.clear();
         Configuration configuration = new Configuration(filename, this);
 //        SwingUtilities.invokeLater(()-> new ServerWindow(newServer));
 
@@ -381,6 +392,12 @@ public class Server implements ServerInterface {
 		ingredient.setRestockAmount(restockAmount);
 		this.notifyUpdate();
 	}
+
+	public Order addOrder(User user){
+	    Order order = new Order(user);
+	    orders.add(order);
+	    return order;
+    }
 
 	@Override
 	public Number getRestockThreshold(Dish dish) {
