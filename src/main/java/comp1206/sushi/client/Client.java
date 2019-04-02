@@ -1,102 +1,120 @@
 package comp1206.sushi.client;
 
-import java.util.List;
-import java.util.Map;
 
+import comp1206.sushi.common.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import comp1206.sushi.common.Dish;
-import comp1206.sushi.common.Order;
-import comp1206.sushi.common.Postcode;
-import comp1206.sushi.common.Restaurant;
-import comp1206.sushi.common.UpdateListener;
-import comp1206.sushi.common.User;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Client implements ClientInterface {
 
     private static final Logger logger = LogManager.getLogger("Client");
+
+	public Restaurant restaurant;
+	public ArrayList<Dish> dishes = new ArrayList<Dish>();
+	public ArrayList<Ingredient> ingredients = new ArrayList<Ingredient>();
+	public ArrayList<Order> orders = new ArrayList<Order>();
+	public ArrayList<User> users = new ArrayList<User>();
+	public ArrayList<Postcode> postcodes = new ArrayList<Postcode>();
+	private ArrayList<UpdateListener> listeners = new ArrayList<UpdateListener>();
+
+
 	
 	public Client() {
         logger.info("Starting up client...");
+
+        Postcode restaurantPostcode = new Postcode("SO17 1BJ");
+        restaurant = new Restaurant("Southampton Sushi",restaurantPostcode);
+        dishes.add(new Dish("Test", "Desciprtio",1,2,3));
+        postcodes.add(new Postcode("SO17 1BX", restaurant));
+
 	}
 	
 	@Override
 	public Restaurant getRestaurant() {
 		// TODO Auto-generated method stub
-		return null;
+		return restaurant;
 	}
 	
 	@Override
 	public String getRestaurantName() {
 		// TODO Auto-generated method stub
-		return null;
+		return restaurant.getName();
 	}
 
 	@Override
 	public Postcode getRestaurantPostcode() {
 		// TODO Auto-generated method stub
-		return null;
+		return restaurant.getLocation();
 	}
 	
 	@Override
 	public User register(String username, String password, String address, Postcode postcode) {
-		// TODO Auto-generated method stub
-		return null;
+	    User newUser = new User(username,password,address,postcode);
+	    users.add(newUser);
+	    return newUser;
 	}
 
 	@Override
 	public User login(String username, String password) {
-		// TODO Auto-generated method stub
+        for (User user: users
+             ) {
+            if (username.equals(user.getName())){
+                return user;
+            }
+        }
+
 		return null;
 	}
 
 	@Override
 	public List<Postcode> getPostcodes() {
-		// TODO Auto-generated method stub
-		return null;
+		return postcodes;
 	}
 
 	@Override
 	public List<Dish> getDishes() {
-		// TODO Auto-generated method stub
-		return null;
+		return dishes;
 	}
 
 	@Override
 	public String getDishDescription(Dish dish) {
-		// TODO Auto-generated method stub
-		return null;
+		return dish.getDescription();
 	}
 
 	@Override
 	public Number getDishPrice(Dish dish) {
-		// TODO Auto-generated method stub
-		return null;
+		return dish.getPrice();
 	}
 
 	@Override
 	public Map<Dish, Number> getBasket(User user) {
-		// TODO Auto-generated method stub
-		return null;
+		return user.getBasket();
 	}
 
 	@Override
 	public Number getBasketCost(User user) {
-		// TODO Auto-generated method stub
-		return null;
+        double cost = 0;
+        Map<Dish, Number> basket = user.getBasket();
+        for (Map.Entry<Dish, Number> cursor: basket.entrySet()
+        ) {
+            cost += (cursor.getKey().getPrice().doubleValue()) * (cursor.getValue().doubleValue());
+        }
+        return cost;
 	}
 
 	@Override
 	public void addDishToBasket(User user, Dish dish, Number quantity) {
-		// TODO Auto-generated method stub
-
+        user.getBasket().put(dish, quantity);
 	}
 
 	@Override
 	public void updateDishInBasket(User user, Dish dish, Number quantity) {
-		// TODO Auto-generated method stub
-
+        user.getBasket().put(dish,quantity);
 	}
 
 	@Override
@@ -107,8 +125,8 @@ public class Client implements ClientInterface {
 
 	@Override
 	public void clearBasket(User user) {
-		// TODO Auto-generated method stub
-
+	    Map<Dish, Number> empty = new HashMap<>();
+        user.setBasket(empty);
 	}
 
 	@Override
@@ -143,14 +161,12 @@ public class Client implements ClientInterface {
 
 	@Override
 	public void addUpdateListener(UpdateListener listener) {
-		// TODO Auto-generated method stub
-
+        this.listeners.add(listener);
 	}
 
 	@Override
 	public void notifyUpdate() {
-		// TODO Auto-generated method stub
-
+        this.listeners.forEach(listener -> listener.updated(new UpdateEvent()));
 	}
 
 }

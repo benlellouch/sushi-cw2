@@ -271,9 +271,9 @@ public class Configuration {
                     String[] ingredients = words[6].split(",");
                     for (String ingredient:ingredients
                          ) {
-                        String[] amountAndName = ingredient.split(" ");
+                        String[] amountAndName = ingredient.split(" \\* ");
                         for(Ingredient newIngredient: server.getIngredients()) {
-                            if (amountAndName[2].equals(newIngredient.getName())) {
+                            if (amountAndName[1].equals(newIngredient.getName())) {
                                 server.addIngredientToDish(dish, newIngredient, NumberFormat.getInstance().parse(amountAndName[0]));
                             }
                         }
@@ -319,12 +319,12 @@ public class Configuration {
                     }
                     String[] dishes = words[2].split(",");
                     for (String dish: dishes) {
-                        String[] amountAndName = dish.split(" ");
-                        String name = amountAndName[2]+ " "+amountAndName[3];
-                        for(Dish newDish: server.getDishes()) {
-                            System.out.println(name + " and the newDish: " + newDish.getName() +  " length of array");
+                        String[] amountAndName = dish.split(" \\* ");
 
-                            if (name.equals(newDish.getName())) {
+                        for(Dish newDish: server.getDishes()) {
+                            System.out.println(amountAndName[1] + " and the newDish: " + newDish.getName() +  " length of array");
+
+                            if (amountAndName[1].equals(newDish.getName())) {
                                 server.addDishtoOrder(order,newDish, NumberFormat.getInstance().parse(amountAndName[0]));
                                 System.out.println(amountAndName[0]);
                             }
@@ -393,6 +393,7 @@ public class Configuration {
             BufferedReader reader = new BufferedReader(file);
             String line;
             Server server = new Server();
+            server.users.add(new User("Admin", "password", "Pokemon", new Postcode("SO17 1BX")));
 
 
 
@@ -407,10 +408,13 @@ public class Configuration {
                             Order order = server.addOrder(user);
                             String[] dishes = words[2].split(",");
                             for (String dish: dishes) {
-                                String[] amountAndName = dish.split(" ");
+                                String[] amountAndName = dish.split(" \\* ");
+                                System.out.println(amountAndName[0] + " " + amountAndName[1]);
                                 for(Dish newDish: server.getDishes()) {
-                                    if (amountAndName[2].equals(newDish.getName())) {
+                                    if (amountAndName[1].equals(newDish.getName())) {
                                         server.addDishtoOrder(order,newDish, NumberFormat.getInstance().parse(amountAndName[0]));
+                                        System.out.println("Added boi");
+
                                     }
                                 }
                             }

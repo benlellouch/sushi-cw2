@@ -232,7 +232,7 @@ public class Server implements ServerInterface {
              ) {
             cost += (cursor.getKey().getPrice().doubleValue()) * (cursor.getValue().doubleValue());
         }
-        return cost;
+        return  cost;
 	}
 
 	@Override
