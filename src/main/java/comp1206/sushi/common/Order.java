@@ -45,4 +45,8 @@ public class Order extends Model {
     public void setDishes(Map<Dish, Number> dishes) {
         this.dishes = dishes;
     }
+
+	public User getUser() {
+		return user;
+	}
 }

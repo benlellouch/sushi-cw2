@@ -36,19 +36,16 @@ public class Client implements ClientInterface {
 	
 	@Override
 	public Restaurant getRestaurant() {
-		// TODO Auto-generated method stub
 		return restaurant;
 	}
 	
 	@Override
 	public String getRestaurantName() {
-		// TODO Auto-generated method stub
 		return restaurant.getName();
 	}
 
 	@Override
 	public Postcode getRestaurantPostcode() {
-		// TODO Auto-generated method stub
 		return restaurant.getLocation();
 	}
 	
@@ -119,8 +116,11 @@ public class Client implements ClientInterface {
 
 	@Override
 	public Order checkoutBasket(User user) {
-		// TODO Auto-generated method stub
-		return null;
+		Order order = new Order(user);
+		order.setDishes(user.getBasket());
+		user.getOrders().add(order);
+		clearBasket(user);
+		return order;
 	}
 
 	@Override
@@ -131,8 +131,7 @@ public class Client implements ClientInterface {
 
 	@Override
 	public List<Order> getOrders(User user) {
-		// TODO Auto-generated method stub
-		return null;
+		return user.getOrders();
 	}
 
 	@Override
@@ -144,19 +143,24 @@ public class Client implements ClientInterface {
 	@Override
 	public String getOrderStatus(Order order) {
 		// TODO Auto-generated method stub
-		return null;
+		return "test";
 	}
 
 	@Override
 	public Number getOrderCost(Order order) {
-		// TODO Auto-generated method stub
-		return null;
+		double cost = 0;
+		Map<Dish, Number> dishes = order.getDishes();
+		for (Map.Entry<Dish, Number> cursor: dishes.entrySet()
+		) {
+			cost += (cursor.getKey().getPrice().doubleValue()) * (cursor.getValue().doubleValue());
+		}
+		return  cost;
 	}
 
 	@Override
 	public void cancelOrder(Order order) {
-		// TODO Auto-generated method stub
-
+        User user = order.getUser();
+        user.getOrders().remove(order);
 	}
 
 	@Override

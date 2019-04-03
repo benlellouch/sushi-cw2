@@ -1,6 +1,9 @@
 package comp1206.sushi.common;
 
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class User extends Model {
@@ -10,6 +13,7 @@ public class User extends Model {
 	private String address;
 	private Postcode postcode;
 	private Map<Dish, Number> basket;
+	private List<Order> orders;
 
 	public User(String username, String password, String address, Postcode postcode) {
 		this.name = username;
@@ -17,6 +21,7 @@ public class User extends Model {
 		this.address = address;
 		this.postcode = postcode;
 		this.basket = new HashMap<>();
+		this.orders = new ArrayList<>();
 	}
 
 	public String getName() {
@@ -47,4 +52,11 @@ public class User extends Model {
         this.basket = basket;
     }
 
+	public List<Order> getOrders() {
+		return orders;
+	}
+
+	public void setOrders(List<Order> orders) {
+		this.orders = orders;
+	}
 }
