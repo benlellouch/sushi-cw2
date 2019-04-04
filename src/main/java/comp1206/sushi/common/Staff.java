@@ -31,6 +31,12 @@ public class Staff extends Model implements Runnable{
         Map<Dish, Number> dishStock = server.getDishStockLevels();
 
         while (true) {
+            try {
+                int randomsleep = random.nextInt(1000);
+                Thread.sleep(randomsleep);
+            }catch (InterruptedException e){
+                System.out.println("Oof");
+            }
                 synchronized (this) {
                     for (Map.Entry<Dish, Number> dishNumberEntry : dishStock.entrySet()) {
                         synchronized (this) {
@@ -71,11 +77,11 @@ public class Staff extends Model implements Runnable{
     public void  prepareDish(Dish dish){
         this.setStatus("Making: " + dish.getName());
         Map<Ingredient, Number> ingredients = dish.getRecipe();
-        int timetoRestock = random.nextInt(6000);
+        int timetoRestock = random.nextInt(10000);
         int dishRestockThreshold = dish.getRestockThreshold().intValue();
         int currentDishStock = server.getDishStockLevels().get(dish).intValue();
         Number newDishStock = currentDishStock + dish.getRestockAmount().intValue();
-        if (timetoRestock < 2000){
+        if (timetoRestock < 5000){
             timetoRestock+= 2000;
         }
         for (Ingredient ingredient: ingredients.keySet()){
