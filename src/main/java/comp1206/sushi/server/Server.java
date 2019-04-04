@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Server implements ServerInterface {
 
@@ -25,6 +26,7 @@ public class Server implements ServerInterface {
 	private ArrayList<UpdateListener> listeners = new ArrayList<UpdateListener>();
 	private Map<Ingredient, Number> ingredientStock = new ConcurrentHashMap<>();
 	private Map<Dish, Number> dishStock = new ConcurrentHashMap<>();
+	private List<Dish> dishBeingMade = new CopyOnWriteArrayList<>();
 
 	public Server(String Filename){
 
@@ -464,5 +466,19 @@ public class Server implements ServerInterface {
 		return restaurant;
 	}
 
+	public void addDishBeingMade(Dish dish){
+	    this.dishBeingMade.add(dish);
+    }
 
+    public void removeDishBeingMade(Dish dish){
+	    this.dishBeingMade.remove(dish);
+    }
+
+    public boolean isBeingMade(Dish dish){
+	    return this.dishBeingMade.contains(dish);
+    }
+
+    public List<Dish> getDishBeingMade() {
+        return dishBeingMade;
+    }
 }
