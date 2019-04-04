@@ -29,21 +29,23 @@ public class Staff extends Model implements Runnable{
 
 	public synchronized void checkDishStock(){
         Map<Dish, Number> dishStock = server.getDishStockLevels();
+
         while (true) {
-                for (Map.Entry<Dish, Number> dishNumberEntry : dishStock.entrySet()) {
-
-                        if (dishNumberEntry.getValue().intValue() <= dishNumberEntry.getKey().getRestockThreshold().intValue()) {
-                            if(!server.isBeingMade(dishNumberEntry.getKey())) {
-                                if (checkIngredientStock(dishNumberEntry.getKey())) {
-                                    server.addDishBeingMade(dishNumberEntry.getKey());
-                                    prepareDish(dishNumberEntry.getKey());
-
-
+                synchronized (this) {
+                    for (Map.Entry<Dish, Number> dishNumberEntry : dishStock.entrySet()) {
+                        synchronized (this) {
+                            if (!server.isBeingMade(dishNumberEntry.getKey())) {
+                                if (dishNumberEntry.getValue().intValue() <= dishNumberEntry.getKey().getRestockThreshold().intValue()) {
+                                    if (checkIngredientStock(dishNumberEntry.getKey())) {
+                                        server.addDishBeingMade(dishNumberEntry.getKey());
+                                        prepareDish(dishNumberEntry.getKey());
+                                    }
                                 }
-                            }
 
+                            }
                         }
 
+                    }
                 }
         }
 
@@ -66,7 +68,7 @@ public class Staff extends Model implements Runnable{
         return true;
     }
 
-    public  void  prepareDish(Dish dish){
+    public void  prepareDish(Dish dish){
         this.setStatus("Making: " + dish.getName());
         Map<Ingredient, Number> ingredients = dish.getRecipe();
         int timetoRestock = random.nextInt(6000);

@@ -468,10 +468,12 @@ public class Server implements ServerInterface {
 
 	public void addDishBeingMade(Dish dish){
 	    this.dishBeingMade.add(dish);
+	    this.notifyUpdate();
     }
 
     public void removeDishBeingMade(Dish dish){
 	    this.dishBeingMade.remove(dish);
+	    this.notifyUpdate();
     }
 
     public boolean isBeingMade(Dish dish){
