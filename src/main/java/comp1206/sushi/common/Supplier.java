@@ -1,12 +1,12 @@
 package comp1206.sushi.common;
 
-import comp1206.sushi.common.Supplier;
-
 public class Supplier extends Model {
 
 	private String name;
 	private Postcode postcode;
 	private Number distance;
+
+	public Supplier(){}
 
 	public Supplier(String name, Postcode postcode) {
 		this.name = name;

@@ -1,6 +1,11 @@
 package comp1206.sushi.client;
 
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.Listener;
+import comp1206.sushi.SomeRequest;
+import comp1206.sushi.SomeResponse;
 import comp1206.sushi.common.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,6 +47,32 @@ public class Client implements ClientInterface {
 		}catch (IOException e ){
 			System.out.println("Something wrong the client comms");
 		}
+
+		Kryo kryo = client.getKryo();
+		kryo.register(SomeRequest.class);
+		kryo.register(SomeResponse.class);
+		kryo.register(Dish.class);
+        kryo.register(java.util.HashMap.class);
+        kryo.register(java.util.ArrayList.class);
+        kryo.register(Ingredient.class);
+        kryo.register(Supplier.class);
+        kryo.register(Postcode.class);
+        kryo.register(Restaurant.class);
+		SomeRequest request = new SomeRequest();
+		request.text = "Here is the request";
+		client.sendTCP(request);
+		client.addListener(new Listener() {
+			public void received (Connection connection, Object object) {
+				if (object instanceof SomeResponse) {
+					SomeResponse response = (SomeResponse)object;
+					System.out.println(response.text);
+				} else if (object instanceof Dish){
+				    Dish dishToAdd = (Dish) object;
+				    dishes.add(dishToAdd);
+                    System.out.println("Added dish");
+                }
+			}
+		});
 
 	}
 	

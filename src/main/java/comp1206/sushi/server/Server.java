@@ -1,22 +1,22 @@
 package comp1206.sushi.server;
 
+import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import comp1206.sushi.Configuration;
+import comp1206.sushi.SomeRequest;
+import comp1206.sushi.SomeResponse;
 import comp1206.sushi.common.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class Server extends Listener implements ServerInterface {
+public class Server implements ServerInterface {
 
     private static final Logger logger = LogManager.getLogger("Server");
 	
@@ -35,9 +35,7 @@ public class Server extends Listener implements ServerInterface {
 	private List<Dish> dishBeingMade = new CopyOnWriteArrayList<>();
 	private com.esotericsoftware.kryonet.Server server;
 
-	public Server(String Filename){
 
-    }
 
 	public Server() {
         logger.info("Starting up server...");
@@ -46,11 +44,35 @@ public class Server extends Listener implements ServerInterface {
         //creation of the comms server
 		try {
 			server = new com.esotericsoftware.kryonet.Server();
-			server.start();
+			synchronized (this){server.start();}
 			server.bind(54555, 54777);
 		}catch (IOException e){
 			System.out.println("Something wrong with the server comms");
 		}
+        Kryo kryo = server.getKryo();
+        kryo.register(SomeRequest.class);
+        kryo.register(SomeResponse.class);
+        kryo.register(Dish.class);
+        kryo.register(java.util.HashMap.class);
+        kryo.register(java.util.ArrayList.class);
+        kryo.register(Ingredient.class);
+        kryo.register(Supplier.class);
+        kryo.register(Postcode.class);
+        kryo.register(Restaurant.class);
+        server.addListener(new Listener() {
+            public void received (Connection connection, Object object) {
+                if (object instanceof SomeRequest) {
+                    SomeRequest request = (SomeRequest)object;
+                    System.out.println(request.text);
+
+                    SomeResponse response = new SomeResponse();
+                    response.text = "Thanks";
+                    Dish dishToSend = dishes.get(1);
+                    connection.sendTCP(dishToSend);
+
+                }
+            }
+        });
 
 //		Postcode restaurantPostcode = new Postcode("SO17 1BJ");
 //		restaurant = new Restaurant("Southampton Sushi",restaurantPostcode);
@@ -102,10 +124,6 @@ public class Server extends Listener implements ServerInterface {
 
 	}
 
-	public void connected(Connection c){
-		System.out.println("Successfully connected to:" + c.getRemoteAddressTCP().getHostString());
-	}
-	
 	@Override
 	public List<Dish> getDishes() {
 		return this.dishes;
