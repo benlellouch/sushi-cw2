@@ -1,16 +1,22 @@
 package comp1206.sushi.server;
 
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.Listener;
 import comp1206.sushi.Configuration;
 import comp1206.sushi.common.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class Server implements ServerInterface {
+public class Server extends Listener implements ServerInterface {
 
     private static final Logger logger = LogManager.getLogger("Server");
 	
@@ -27,6 +33,7 @@ public class Server implements ServerInterface {
 	private Map<Ingredient, Number> ingredientStock = new ConcurrentHashMap<>();
 	private Map<Dish, Number> dishStock = new ConcurrentHashMap<>();
 	private List<Dish> dishBeingMade = new CopyOnWriteArrayList<>();
+	private com.esotericsoftware.kryonet.Server server;
 
 	public Server(String Filename){
 
@@ -35,7 +42,16 @@ public class Server implements ServerInterface {
 	public Server() {
         logger.info("Starting up server...");
         loadConfiguration("Configuration.txt");
-		
+
+        //creation of the comms server
+		try {
+			server = new com.esotericsoftware.kryonet.Server();
+			server.start();
+			server.bind(54555, 54777);
+		}catch (IOException e){
+			System.out.println("Something wrong with the server comms");
+		}
+
 //		Postcode restaurantPostcode = new Postcode("SO17 1BJ");
 //		restaurant = new Restaurant("Southampton Sushi",restaurantPostcode);
 //
@@ -84,6 +100,10 @@ public class Server implements ServerInterface {
 //        orders.add(order);
 //        addDishtoOrder(order,dish1,3);
 
+	}
+
+	public void connected(Connection c){
+		System.out.println("Successfully connected to:" + c.getRemoteAddressTCP().getHostString());
 	}
 	
 	@Override

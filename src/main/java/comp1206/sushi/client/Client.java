@@ -5,6 +5,7 @@ import comp1206.sushi.common.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,7 @@ public class Client implements ClientInterface {
 	public ArrayList<User> users = new ArrayList<User>();
 	public ArrayList<Postcode> postcodes = new ArrayList<Postcode>();
 	private ArrayList<UpdateListener> listeners = new ArrayList<UpdateListener>();
+	private com.esotericsoftware.kryonet.Client client;
 
 
 	
@@ -31,6 +33,15 @@ public class Client implements ClientInterface {
         restaurant = new Restaurant("Southampton Sushi",restaurantPostcode);
         dishes.add(new Dish("Test", "Desciprtio",1,2,3));
         postcodes.add(new Postcode("SO17 1BX", restaurant));
+
+        //creation of comms client
+		try {
+			client = new com.esotericsoftware.kryonet.Client();
+			client.start();
+			client.connect(5000, "localhost", 54555, 54777);
+		}catch (IOException e ){
+			System.out.println("Something wrong the client comms");
+		}
 
 	}
 	
