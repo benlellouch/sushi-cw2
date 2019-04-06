@@ -4,7 +4,7 @@ package comp1206.sushi.client;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
-import comp1206.sushi.Comms;
+import comp1206.sushi.common.Comms;
 import comp1206.sushi.common.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Client implements ClientInterface {
+public class  Client extends Listener implements ClientInterface {
 
     private static final Logger logger = LogManager.getLogger("Client");
 
@@ -23,7 +23,7 @@ public class Client implements ClientInterface {
 	public ArrayList<Dish> dishes = new ArrayList<Dish>();
 	public ArrayList<Ingredient> ingredients = new ArrayList<Ingredient>();
 	public ArrayList<Order> orders = new ArrayList<Order>();
-	public ArrayList<User> users = new ArrayList<User>();
+//	public ArrayList<User> users = new ArrayList<User>();
 	public ArrayList<Postcode> postcodes = new ArrayList<Postcode>();
 	private ArrayList<UpdateListener> listeners = new ArrayList<UpdateListener>();
 	private com.esotericsoftware.kryonet.Client client;
@@ -43,9 +43,11 @@ public class Client implements ClientInterface {
 
         //creation of comms client
 		try {
-			client = new com.esotericsoftware.kryonet.Client();
-			client.start();
-			client.connect(5000, "localhost", 54555, 54777);
+		    synchronized (this) {
+                client = new com.esotericsoftware.kryonet.Client();
+                client.start();
+                client.connect(5000, "127.0.0.1", 54555, 54777);
+            }
 		}catch (IOException e ){
 			System.out.println("Something wrong the client comms");
 		}
@@ -62,27 +64,44 @@ public class Client implements ClientInterface {
         kryo.register(Order.class);
         kryo.register(User.class);
 
-
-		client.addListener(new Listener() {
-
-            public void connected(Connection connection){
-                System.out.println("The connection is complete");
-            }
-            public void disconnected(Connection connection){
-                System.out.println("Disconnected");
-            }
-			public void received (Connection connection, Object object) {
-				if (object instanceof Dish){
-				    Dish dishToAdd = (Dish) object;
-				    dishes.add(dishToAdd);
-                    System.out.println("Added dish");
-                } else if (object instanceof User){
-                    loggedInUser = (User) object;
-                }
-			}
-		});
+        String string = "You have received my message";
+        client.sendTCP(string);
+        synchronized (this) {
+            client.addListener(this);
+        }
+        System.out.println(client.getRemoteAddressTCP());
 
 	}
+    public void connected(Connection connection){
+        System.out.println("The connection is complete");
+    }
+    public void disconnected(Connection connection){
+        System.out.println("Disconnected");
+    }
+    public synchronized  void received (Connection connection, Object object) {
+	    synchronized (this) {
+            if (object instanceof Dish) {
+                Dish dishToAdd = (Dish) object;
+                synchronized (this) {
+                    this.addDish(dishToAdd);
+                }
+                System.out.println("Added dish");
+            } else if (object instanceof User) {
+                System.out.println("I receive the User");
+                loggedInUser = (User) object;
+            } else if (object instanceof String) {
+                String string = (String) object;
+                System.out.println(object);
+
+            } else if (object instanceof Order) {
+                Order order = (Order) object;
+                User user = order.getUser();
+                System.out.println(order.getUser().getName());
+                user.getOrders().add(order);
+                System.out.println("Added Order");
+            }
+        }
+    }
 	
 	@Override
 	public Restaurant getRestaurant() {
@@ -102,28 +121,37 @@ public class Client implements ClientInterface {
 	@Override
 	public User register(String username, String password, String address, Postcode postcode) {
 	    User newUser = new User(username,password,address,postcode);
-	    client.sendTCP(newUser);
-	    users.add(newUser);
+        Comms registerRequest = new Comms(newUser);
+        registerRequest.setInitClientRequest(true);
+        client.sendTCP(registerRequest);
+
+
 	    return newUser;
 	}
 
 	@Override
 	public User login(String username, String password) {
-
-	    User tempLoginUser = new User(username, password, null, null);
+	    Postcode uselessPostcode = new Postcode("SO17 1BX", restaurant);
+	    User tempLoginUser = new User(username, password, "useless", uselessPostcode);
 	    Comms loginRequest = new Comms(tempLoginUser);
 	    loginRequest.setLoginRequest(true);
         System.out.println(loginRequest.isLoginRequest());
         System.out.println(loginRequest.getUser().getName());
         System.out.println(loginRequest);
 //	    client.sendTCP(loginRequest);
-	    client.sendTCP(tempLoginUser);
+        String test = "login test";
+	    client.sendTCP(loginRequest);
 //        for (User user: users
 //             ) {
 //            if (username.equals(user.getName())){
 //                return user;
 //            }
 //        }
+        try{Thread.sleep(1000);}
+        catch (InterruptedException e){
+
+        }
+
 		return loggedInUser;
 	}
 
@@ -179,6 +207,7 @@ public class Client implements ClientInterface {
 		order.setDishes(user.getBasket());
 		user.getOrders().add(order);
 		clearBasket(user);
+		client.sendTCP(order);
 		return order;
 	}
 
@@ -228,8 +257,21 @@ public class Client implements ClientInterface {
 	}
 
 	@Override
-	public void notifyUpdate() {
-        this.listeners.forEach(listener -> listener.updated(new UpdateEvent()));
+	public synchronized void notifyUpdate() {
+        synchronized (this){this.listeners.forEach(listener -> listener.updated(new UpdateEvent()));}
 	}
+
+	public void addDish(Dish dish){
+	    this.dishes.add(dish);
+	    synchronized (this) {
+	        try {
+                this.notifyUpdate();
+            }catch (NullPointerException e){
+
+            }
+        }
+    }
+
+
 
 }

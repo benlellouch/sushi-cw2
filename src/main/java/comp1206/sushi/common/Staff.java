@@ -21,7 +21,7 @@ public class Staff extends Model implements Runnable{
 
 	}
 
-	public void run(){
+	public synchronized void run(){
 	    synchronized (this) {
             checkDishStock();
         }

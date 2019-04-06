@@ -1,6 +1,4 @@
-package comp1206.sushi;
-
-import comp1206.sushi.common.User;
+package comp1206.sushi.common;
 
 //this class helps initialise the Client with all the server data
 public class Comms {
@@ -8,6 +6,7 @@ public class Comms {
     private boolean initClientRequest;
     private boolean loginRequest;
     private User user;
+
 
     public Comms(User user){
         initClientRequest = false;

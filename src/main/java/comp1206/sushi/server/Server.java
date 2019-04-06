@@ -3,7 +3,7 @@ package comp1206.sushi.server;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
-import comp1206.sushi.Comms;
+import comp1206.sushi.common.Comms;
 import comp1206.sushi.Configuration;
 import comp1206.sushi.common.*;
 import org.apache.logging.log4j.LogManager;
@@ -18,7 +18,7 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class Server implements ServerInterface {
+public class Server extends Listener implements ServerInterface {
 
     private static final Logger logger = LogManager.getLogger("Server");
 	
@@ -62,39 +62,7 @@ public class Server implements ServerInterface {
         kryo.register(Restaurant.class);
         kryo.register(Order.class);
         kryo.register(User.class);
-            server.addListener(new Listener() {
-                public void connected(Connection connection){
-                    System.out.println("The connection is complete");
-                }
-                public void disconnected(Connection connection){
-                    System.out.println("Disconnected");
-                }
-                public void received(Connection connection, Object object) {
-                    if (object instanceof Comms) {
-                        System.out.println("I do receive a comms object");
-                        Comms request =  (Comms) object;
-                        User user = request.getUser();
-                        System.out.println(request);
-                        System.out.println(request.isLoginRequest());
-                        if (request.isInitClientRequest()) {
-
-                        } else if (request.isLoginRequest()) {
-                            System.out.println("I get a login request with the username:" + user.getName());
-                            for (User cursor : users) {
-                                if (user.getName().equals(cursor.getName())) {
-                                    connection.sendTCP(cursor);
-                                    System.out.println("I sent out the user that the client wants: " + cursor.getName());
-                                }
-                            }
-
-                        }
-
-                    } else if (object instanceof User){
-                        User user = (User) object;
-                        System.out.println(user.getName());
-                    }
-                }
-            });
+        server.addListener(this);
 
 
 //		Postcode restaurantPostcode = new Postcode("SO17 1BJ");
@@ -146,14 +114,65 @@ public class Server implements ServerInterface {
 //        addDishtoOrder(order,dish1,3);
 
 	}
+    public void connected(Connection connection){
+        System.out.println("The connection is complete");
+        String string = "say hello to my little friend";
+        connection.sendTCP(string);
+        System.out.println("I have sent a string");
+        System.out.println(connection.getRemoteAddressTCP());
+    }
+    public void disconnected(Connection connection){
+        System.out.println("Disconnected");
+    }
+    public void received(Connection connection, Object object) {
+        if (object instanceof Comms) {
+            System.out.println("I do receive a comms object");
+            Comms request =  (Comms) object;
+            User user = request.getUser();
+            System.out.println(request);
+            System.out.println(request.isLoginRequest());
+            if (request.isInitClientRequest()) {
 
-	public void initialiseClient(Connection connection, User user){
+                users.add(user);
+                initialiseClient(connection, user);
+            } else if (request.isLoginRequest()) {
+                System.out.println("I get a login request with the username:" + user.getName());
+                for (User cursor : users) {
+                    if (user.getName().equals(cursor.getName())) {
+                        connection.sendTCP(cursor);
+                        System.out.println("I sent out the user that the client wants: " + cursor.getName());
+                        initialiseClient(connection, cursor);
+                    }
+                }
+
+            }
+
+        } else if (object instanceof User){
+
+            User user = (User) object;
+            System.out.println(user.getName());
+        } else if (object instanceof  String){
+            String print = (String) object;
+            System.out.println(print);
+            String send = "And did you receive mine";
+            System.out.println(connection.getRemoteAddressTCP());
+            connection.sendTCP(send);
+        } else if (object instanceof Dish){
+            System.out.println("oh shit it's a dish");
+        } else if (object instanceof Order){
+            Order order = (Order) object;
+            orders.add(order);
+        }
+    }
+
+	public synchronized void initialiseClient(Connection connection, User user){
         for (Dish dish : dishes) {
             connection.sendTCP(dish);
         }
         for (Order order: orders){
             if (order.getUser().equals(user)){
                 connection.sendTCP(order);
+                System.out.println("Order sent");
             }
         }
     }
@@ -169,6 +188,11 @@ public class Server implements ServerInterface {
 		this.dishes.add(newDish);
 		this.setStock(newDish, 0);
 		this.notifyUpdate();
+		try {
+            server.sendToAllTCP(newDish);
+        }catch (NullPointerException e){
+            System.out.println("It's fine");
+        }
 		return newDish;
 	}
 	
@@ -475,6 +499,7 @@ public class Server implements ServerInterface {
 	public Order addOrder(User user){
 	    Order order = new Order(user);
 	    orders.add(order);
+	    this.notifyUpdate();
 	    return order;
     }
 

@@ -15,6 +15,8 @@ public class User extends Model {
 	private Map<Dish, Number> basket;
 	private List<Order> orders;
 
+	public User(){}
+
 	public User(String username, String password, String address, Postcode postcode) {
 		this.name = username;
 		this.password = password;

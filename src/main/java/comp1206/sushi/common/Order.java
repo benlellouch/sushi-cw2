@@ -10,6 +10,8 @@ public class Order extends Model {
 	private String status;
 	private User user;
 	private Map<Dish, Number> dishes;
+
+	public Order(){}
 	
 	public Order(User user) {
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/YYYY HH:mm:ss");  
