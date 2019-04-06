@@ -43,7 +43,9 @@ public class Staff extends Model implements Runnable{
                             if (!server.isBeingMade(dishNumberEntry.getKey())) {
                                 if (dishNumberEntry.getValue().intValue() <= dishNumberEntry.getKey().getRestockThreshold().intValue()) {
                                     if (checkIngredientStock(dishNumberEntry.getKey())) {
-                                        server.addDishBeingMade(dishNumberEntry.getKey());
+                                        synchronized (this) {
+                                            server.addDishBeingMade(dishNumberEntry.getKey());
+                                        }
                                         prepareDish(dishNumberEntry.getKey());
                                     }
                                 }

@@ -3,16 +3,18 @@ package comp1206.sushi.server;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
+import comp1206.sushi.Comms;
 import comp1206.sushi.Configuration;
-import comp1206.sushi.SomeRequest;
-import comp1206.sushi.SomeResponse;
 import comp1206.sushi.common.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -50,8 +52,7 @@ public class Server implements ServerInterface {
 			System.out.println("Something wrong with the server comms");
 		}
         Kryo kryo = server.getKryo();
-        kryo.register(SomeRequest.class);
-        kryo.register(SomeResponse.class);
+		kryo.register(Comms.class);
         kryo.register(Dish.class);
         kryo.register(java.util.HashMap.class);
         kryo.register(java.util.ArrayList.class);
@@ -59,20 +60,42 @@ public class Server implements ServerInterface {
         kryo.register(Supplier.class);
         kryo.register(Postcode.class);
         kryo.register(Restaurant.class);
-        server.addListener(new Listener() {
-            public void received (Connection connection, Object object) {
-                if (object instanceof SomeRequest) {
-                    SomeRequest request = (SomeRequest)object;
-                    System.out.println(request.text);
-
-                    SomeResponse response = new SomeResponse();
-                    response.text = "Thanks";
-                    Dish dishToSend = dishes.get(1);
-                    connection.sendTCP(dishToSend);
-
+        kryo.register(Order.class);
+        kryo.register(User.class);
+            server.addListener(new Listener() {
+                public void connected(Connection connection){
+                    System.out.println("The connection is complete");
                 }
-            }
-        });
+                public void disconnected(Connection connection){
+                    System.out.println("Disconnected");
+                }
+                public void received(Connection connection, Object object) {
+                    if (object instanceof Comms) {
+                        System.out.println("I do receive a comms object");
+                        Comms request =  (Comms) object;
+                        User user = request.getUser();
+                        System.out.println(request);
+                        System.out.println(request.isLoginRequest());
+                        if (request.isInitClientRequest()) {
+
+                        } else if (request.isLoginRequest()) {
+                            System.out.println("I get a login request with the username:" + user.getName());
+                            for (User cursor : users) {
+                                if (user.getName().equals(cursor.getName())) {
+                                    connection.sendTCP(cursor);
+                                    System.out.println("I sent out the user that the client wants: " + cursor.getName());
+                                }
+                            }
+
+                        }
+
+                    } else if (object instanceof User){
+                        User user = (User) object;
+                        System.out.println(user.getName());
+                    }
+                }
+            });
+
 
 //		Postcode restaurantPostcode = new Postcode("SO17 1BJ");
 //		restaurant = new Restaurant("Southampton Sushi",restaurantPostcode);
@@ -123,6 +146,17 @@ public class Server implements ServerInterface {
 //        addDishtoOrder(order,dish1,3);
 
 	}
+
+	public void initialiseClient(Connection connection, User user){
+        for (Dish dish : dishes) {
+            connection.sendTCP(dish);
+        }
+        for (Order order: orders){
+            if (order.getUser().equals(user)){
+                connection.sendTCP(order);
+            }
+        }
+    }
 
 	@Override
 	public List<Dish> getDishes() {
@@ -273,8 +307,8 @@ public class Server implements ServerInterface {
 	public Number getOrderCost(Order order) {
 	    double cost = 0;
 		Map<Dish, Number> dishes = order.getDishes();
-        for (Entry<Dish, Number> cursor: dishes.entrySet()
-             ) {
+
+        for (Entry<Dish, Number> cursor: dishes.entrySet()) {
             cost += (cursor.getKey().getPrice().doubleValue()) * (cursor.getValue().doubleValue());
         }
         return  cost;
@@ -470,8 +504,10 @@ public class Server implements ServerInterface {
 	}
 	
 	@Override
-	public void notifyUpdate() {
-		this.listeners.forEach(listener -> listener.updated(new UpdateEvent()));
+	public synchronized void notifyUpdate() {
+	    synchronized (this) {
+            this.listeners.forEach(listener -> listener.updated(new UpdateEvent()));
+        }
 	}
 
 	@Override
@@ -504,9 +540,11 @@ public class Server implements ServerInterface {
 		return restaurant;
 	}
 
-	public void addDishBeingMade(Dish dish){
+	public synchronized void  addDishBeingMade(Dish dish){
 	    this.dishBeingMade.add(dish);
-	    this.notifyUpdate();
+	    synchronized (this) {
+            this.notifyUpdate();
+        }
     }
 
     public void removeDishBeingMade(Dish dish){

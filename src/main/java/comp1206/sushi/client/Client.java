@@ -4,8 +4,7 @@ package comp1206.sushi.client;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
-import comp1206.sushi.SomeRequest;
-import comp1206.sushi.SomeResponse;
+import comp1206.sushi.Comms;
 import comp1206.sushi.common.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,16 +27,19 @@ public class Client implements ClientInterface {
 	public ArrayList<Postcode> postcodes = new ArrayList<Postcode>();
 	private ArrayList<UpdateListener> listeners = new ArrayList<UpdateListener>();
 	private com.esotericsoftware.kryonet.Client client;
+	private User loggedInUser;
 
 
 	
 	public Client() {
         logger.info("Starting up client...");
+        loggedInUser = null;
 
         Postcode restaurantPostcode = new Postcode("SO17 1BJ");
         restaurant = new Restaurant("Southampton Sushi",restaurantPostcode);
-        dishes.add(new Dish("Test", "Desciprtio",1,2,3));
+//        dishes.add(new Dish("Test", "Desciprtio",1,2,3));
         postcodes.add(new Postcode("SO17 1BX", restaurant));
+
 
         //creation of comms client
 		try {
@@ -49,8 +51,7 @@ public class Client implements ClientInterface {
 		}
 
 		Kryo kryo = client.getKryo();
-		kryo.register(SomeRequest.class);
-		kryo.register(SomeResponse.class);
+		kryo.register(Comms.class);
 		kryo.register(Dish.class);
         kryo.register(java.util.HashMap.class);
         kryo.register(java.util.ArrayList.class);
@@ -58,18 +59,25 @@ public class Client implements ClientInterface {
         kryo.register(Supplier.class);
         kryo.register(Postcode.class);
         kryo.register(Restaurant.class);
-		SomeRequest request = new SomeRequest();
-		request.text = "Here is the request";
-		client.sendTCP(request);
+        kryo.register(Order.class);
+        kryo.register(User.class);
+
+
 		client.addListener(new Listener() {
+
+            public void connected(Connection connection){
+                System.out.println("The connection is complete");
+            }
+            public void disconnected(Connection connection){
+                System.out.println("Disconnected");
+            }
 			public void received (Connection connection, Object object) {
-				if (object instanceof SomeResponse) {
-					SomeResponse response = (SomeResponse)object;
-					System.out.println(response.text);
-				} else if (object instanceof Dish){
+				if (object instanceof Dish){
 				    Dish dishToAdd = (Dish) object;
 				    dishes.add(dishToAdd);
                     System.out.println("Added dish");
+                } else if (object instanceof User){
+                    loggedInUser = (User) object;
                 }
 			}
 		});
@@ -94,20 +102,29 @@ public class Client implements ClientInterface {
 	@Override
 	public User register(String username, String password, String address, Postcode postcode) {
 	    User newUser = new User(username,password,address,postcode);
+	    client.sendTCP(newUser);
 	    users.add(newUser);
 	    return newUser;
 	}
 
 	@Override
 	public User login(String username, String password) {
-        for (User user: users
-             ) {
-            if (username.equals(user.getName())){
-                return user;
-            }
-        }
 
-		return null;
+	    User tempLoginUser = new User(username, password, null, null);
+	    Comms loginRequest = new Comms(tempLoginUser);
+	    loginRequest.setLoginRequest(true);
+        System.out.println(loginRequest.isLoginRequest());
+        System.out.println(loginRequest.getUser().getName());
+        System.out.println(loginRequest);
+//	    client.sendTCP(loginRequest);
+	    client.sendTCP(tempLoginUser);
+//        for (User user: users
+//             ) {
+//            if (username.equals(user.getName())){
+//                return user;
+//            }
+//        }
+		return loggedInUser;
 	}
 
 	@Override
