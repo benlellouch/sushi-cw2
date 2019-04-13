@@ -82,10 +82,30 @@ public class  Client extends Listener implements ClientInterface {
 	    synchronized (this) {
             if (object instanceof Dish) {
                 Dish dishToAdd = (Dish) object;
-                synchronized (this) {
-                    this.addDish(dishToAdd);
+                boolean removed = false;
+
+                for (Dish dish: dishes) {
+                    if (dish.getName().equals(dishToAdd.getName()) && dish.getDescription().equals(dish.getDescription())) {
+                        this.removeDish(dish);
+                        System.out.println("Removed Dish");
+                        removed = true;
+                        break;
+                    }
                 }
-                System.out.println("Added dish");
+
+                if (!removed) {
+                    this.addDish(dishToAdd);
+                    System.out.println("Added dish");
+                }
+//                if (dishes.contains(dishToAdd)){
+//                	removeDish(dishToAdd);
+//					System.out.println("Removed dish from list");
+//				}else {
+//					synchronized (this) {
+//						this.addDish(dishToAdd);
+//					}
+//					System.out.println("Added dish");
+//				}
             } else if (object instanceof User) {
                 System.out.println("I receive the User");
                 loggedInUser = (User) object;
@@ -98,6 +118,7 @@ public class  Client extends Listener implements ClientInterface {
                 User user = order.getUser();
                 System.out.println(order.getUser().getName());
                 user.getOrders().add(order);
+                this.notifyUpdate();
                 System.out.println("Added Order");
             }
         }
@@ -249,6 +270,7 @@ public class  Client extends Listener implements ClientInterface {
 	public void cancelOrder(Order order) {
         User user = order.getUser();
         user.getOrders().remove(order);
+        this.notifyUpdate();
 	}
 
 	@Override
@@ -258,19 +280,30 @@ public class  Client extends Listener implements ClientInterface {
 
 	@Override
 	public synchronized void notifyUpdate() {
-        synchronized (this){this.listeners.forEach(listener -> listener.updated(new UpdateEvent()));}
+		try {
+			synchronized (this) {
+				this.listeners.forEach(listener -> listener.updated(new UpdateEvent()));
+			}
+		}catch(NullPointerException e){
+
+		}
 	}
 
 	public void addDish(Dish dish){
 	    this.dishes.add(dish);
 	    synchronized (this) {
-	        try {
-                this.notifyUpdate();
-            }catch (NullPointerException e){
 
-            }
+                this.notifyUpdate();
+
         }
     }
+
+    public void removeDish(Dish dish){
+		this.dishes.remove(dish);
+		synchronized (this){
+			this.notifyUpdate();
+		}
+	}
 
 
 

@@ -1,7 +1,8 @@
 package comp1206.sushi.common;
 
-//this class helps initialise the Client with all the server data
+// this class is used as request message for the client
 public class Comms {
+
 
     private boolean initClientRequest;
     private boolean loginRequest;

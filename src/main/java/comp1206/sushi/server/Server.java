@@ -199,6 +199,7 @@ public class Server extends Listener implements ServerInterface {
 	@Override
 	public void removeDish(Dish dish) {
 		this.dishes.remove(dish);
+		server.sendToAllTCP(dish);
 		this.notifyUpdate();
 	}
 
