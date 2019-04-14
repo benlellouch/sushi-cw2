@@ -226,12 +226,26 @@ public class  Client extends Listener implements ClientInterface {
 
 	@Override
 	public Order checkoutBasket(User user) {
+	    Map<Dish, Number> basket = user.getBasket();
 		Order order = new Order(user);
-		order.setDishes(user.getBasket());
+		order.setDishes(basket);
 		user.getOrders().add(order);
-		Comms orderRequest = new Comms(user, user.getBasket());
+		StringBuilder orderString = new StringBuilder("ORDER:");
+		orderString.append(user.getName()+ ":");
+		for(Map.Entry<Dish, Number> cursor : basket.entrySet()){
+		    orderString.append(cursor.getValue()+" * "+cursor.getKey()+ ",");
+        }
+        System.out.println(orderString.toString());
+
+		Comms orderRequest = new Comms(orderString.toString());
 		orderRequest.setOrderRequest(true);
+
 		client.sendTCP(orderRequest);
+
+
+
+
+//		client.sendTCP(orderRequest);
 		clearBasket(user);
 		return order;
 	}

@@ -3,13 +3,14 @@ package comp1206.sushi.server;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
-import comp1206.sushi.common.Comms;
 import comp1206.sushi.Configuration;
 import comp1206.sushi.common.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -145,11 +146,49 @@ public class Server extends Listener implements ServerInterface {
                 }
 
             }else if (request.isOrderRequest()){
-               Order order = new Order(user);
-               this.addOrder(order);
-               for (Entry<Dish, Number> cursor : request.getOrderDishes().entrySet()){
-                   this.addDishtoOrder(order, cursor.getKey(), cursor.getValue());
-               }
+//               Order order = new Order(user);
+//               this.addOrder(order);
+//               for (Entry<String, Number> cursor : request.getOrderDishes().entrySet()){
+//                    for (Dish dish: dishes){
+//                        if (cursor.getKey().equals(dish.getName())){
+//                            this.addDishtoOrder(order,dish, cursor.getValue());
+//                        }
+//                    }
+//               }
+               String orderString = (String) request.getOrderString();
+                String[] words = orderString.split(":");
+
+                if (words[0].equals("ORDER")){
+
+                    Order order =null;
+
+                    for (User cursor: this.getUsers()
+                    ) {
+                        if (words[1].equals(cursor.getName())) {
+                            order = this.addOrder(cursor);
+
+                        }
+
+                    }
+                    String[] dishes = words[2].split(",");
+                    for (String dish: dishes) {
+                        String[] amountAndName = dish.split(" \\* ");
+
+                        for(Dish newDish: this.getDishes()) {
+                            System.out.println(amountAndName[1] + " and the newDish: " + newDish.getName() +  " length of array");
+
+                            if (amountAndName[1].equals(newDish.getName())) {
+                                try {
+                                    this.addDishtoOrder(order,newDish, NumberFormat.getInstance().parse(amountAndName[0]));
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                System.out.println(amountAndName[0]);
+                            }
+                        }
+                    }
+
+                }
             }
 
         } else if (object instanceof User){
@@ -436,7 +475,6 @@ public class Server extends Listener implements ServerInterface {
 	@Override
 	public void loadConfiguration(String filename) {
 	    System.out.println("Loaded configuration: " + filename);
-//        Server newServer = new Server();
         dishes.clear();
         drones.clear();
         ingredients.clear();
@@ -448,7 +486,6 @@ public class Server extends Listener implements ServerInterface {
         suppliers.clear();
         postcodes.clear();
         Configuration configuration = new Configuration(filename, this);
-//        SwingUtilities.invokeLater(()-> new ServerWindow(newServer));
 
 	}
 

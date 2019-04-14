@@ -10,9 +10,10 @@ public class Comms {
     private boolean loginRequest;
     private boolean orderRequest;
     private User user;
-    private Map<Dish, Number> orderDishes;
+    private Map<String, Number> orderDishes;
+    private String orderString;
 
-    public Comms (User user, Map<Dish, Number> orderDishes){
+    public Comms (User user, Map<String, Number> orderDishes){
         this.initClientRequest = false;
         this.loginRequest = false;
         this.orderRequest=false;
@@ -24,6 +25,13 @@ public class Comms {
         this.loginRequest = false;
         this.orderRequest=false;
         this.user = user;
+    }
+
+    public Comms(String string){
+        this.initClientRequest = false;
+        this.loginRequest = false;
+        this.orderRequest=false;
+        this.orderString = string;
     }
 
     public Comms(){
@@ -49,7 +57,7 @@ public class Comms {
         return user;
     }
 
-    public Map<Dish, Number> getOrderDishes(){return orderDishes;}
+    public Map<String, Number> getOrderDishes(){return orderDishes;}
 
     public boolean isOrderRequest() {
         return orderRequest;
@@ -57,5 +65,9 @@ public class Comms {
 
     public void setOrderRequest(boolean orderRequest) {
         this.orderRequest = orderRequest;
+    }
+
+    public String getOrderString() {
+        return orderString;
     }
 }
