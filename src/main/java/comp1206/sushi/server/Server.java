@@ -42,6 +42,8 @@ public class Server extends Listener implements ServerInterface {
 
 	public Server() {
         logger.info("Starting up server...");
+        Postcode postcode = new Postcode("SO17 1BX");
+        restaurant = new Restaurant("Southampton Sushi", postcode);
         loadConfiguration("Configuration.txt");
 
         //creation of the comms server
@@ -50,7 +52,7 @@ public class Server extends Listener implements ServerInterface {
 			synchronized (this){server.start();}
 			server.bind(54555, 54777);
 		}catch (IOException e){
-			System.out.println("Something wrong with the server comms");
+			e.printStackTrace();
 		}
         Kryo kryo = server.getKryo();
 		kryo.register(Comms.class);
