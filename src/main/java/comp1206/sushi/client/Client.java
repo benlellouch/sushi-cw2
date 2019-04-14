@@ -35,16 +35,13 @@ public class  Client extends Listener implements ClientInterface {
         logger.info("Starting up client...");
         loggedInUser = null;
 
-        Postcode restaurantPostcode = new Postcode("SO17 1BJ");
-        restaurant = new Restaurant("Southampton Sushi",restaurantPostcode);
-//        dishes.add(new Dish("Test", "Desciprtio",1,2,3));
-        postcodes.add(new Postcode("SO17 1BX", restaurant));
+
 
 
         //creation of comms client
 		try {
 		    synchronized (this) {
-                client = new com.esotericsoftware.kryonet.Client(16384,16384);
+                client = new com.esotericsoftware.kryonet.Client(32768,32768);
                 client.start();
                 client.connect(5000, "127.0.0.1", 54555, 54777);
             }
@@ -64,7 +61,7 @@ public class  Client extends Listener implements ClientInterface {
         kryo.register(Order.class);
         kryo.register(User.class);
 
-        String string = "You have received my message";
+        String string = "getPostcodes";
         client.sendTCP(string);
         synchronized (this) {
             client.addListener(this);
@@ -78,14 +75,14 @@ public class  Client extends Listener implements ClientInterface {
     public void disconnected(Connection connection){
         System.out.println("Disconnected");
     }
-    public synchronized  void received (Connection connection, Object object) {
-	    synchronized (this) {
+    public void received (Connection connection, Object object) {
+
             if (object instanceof Dish) {
                 Dish dishToAdd = (Dish) object;
                 boolean removed = false;
 
                 for (Dish dish: dishes) {
-                    if (dish.getName().equals(dishToAdd.getName()) && dish.getDescription().equals(dish.getDescription())) {
+                    if (dish.getName().equals(dishToAdd.getName()) && dish.getDescription().equals(dishToAdd.getDescription())) {
                         this.removeDish(dish);
                         System.out.println("Removed Dish");
                         removed = true;
@@ -100,15 +97,7 @@ public class  Client extends Listener implements ClientInterface {
 
 
 
-//                if (dishes.contains(dishToAdd)){
-//                	removeDish(dishToAdd);
-//					System.out.println("Removed dish from list");
-//				}else {
-//					synchronized (this) {
-//						this.addDish(dishToAdd);
-//					}
-//					System.out.println("Added dish");
-//				}
+
             } else if (object instanceof User) {
                 System.out.println("I receive the User");
                 loggedInUser = (User) object;
@@ -127,8 +116,14 @@ public class  Client extends Listener implements ClientInterface {
 				for (Map.Entry<Dish, Number> cursor : order.getDishes().entrySet()){
 					System.out.println(cursor.getKey() + " " + cursor.getValue());
 				}
+            }else if (object instanceof  Restaurant){
+            	Restaurant newRestaurant = (Restaurant) object;
+            	restaurant = newRestaurant;
+			}else if(object instanceof  Postcode){
+                Postcode postcode = (Postcode) object;
+                this.addPostcode(postcode);
             }
-        }
+
     }
 	
 	@Override
@@ -234,6 +229,9 @@ public class  Client extends Listener implements ClientInterface {
 		Order order = new Order(user);
 		order.setDishes(user.getBasket());
 		user.getOrders().add(order);
+		Comms orderRequest = new Comms(user, user.getBasket());
+		orderRequest.setOrderRequest(true);
+		client.sendTCP(orderRequest);
 		clearBasket(user);
 		return order;
 	}
@@ -304,6 +302,11 @@ public class  Client extends Listener implements ClientInterface {
 		this.notifyUpdate();
 
 	}
+
+	public void addPostcode(Postcode postcode){
+	    this.postcodes.add(postcode);
+	    this.notifyUpdate();
+    }
 
 
 

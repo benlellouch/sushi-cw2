@@ -144,6 +144,12 @@ public class Server extends Listener implements ServerInterface {
                     }
                 }
 
+            }else if (request.isOrderRequest()){
+               Order order = new Order(user);
+               this.addOrder(order);
+               for (Entry<Dish, Number> cursor : request.getOrderDishes().entrySet()){
+                   this.addDishtoOrder(order, cursor.getKey(), cursor.getValue());
+               }
             }
 
         } else if (object instanceof User){
@@ -156,15 +162,22 @@ public class Server extends Listener implements ServerInterface {
             String send = "And did you receive mine";
             System.out.println(connection.getRemoteAddressTCP());
             connection.sendTCP(send);
+            if(print.equals("getPostcodes")){
+                connection.sendTCP(restaurant);
+                for (Postcode postcode : postcodes){
+                    connection.sendTCP(postcode);
+                }
+            }
         } else if (object instanceof Dish){
             System.out.println("oh shit it's a dish");
         } else if (object instanceof Order){
             Order order = (Order) object;
-            this.addOrder(order);
+
         }
     }
 
 	public synchronized void initialiseClient(Connection connection, User user){
+
         for (Dish dish : dishes) {
             connection.sendTCP(dish);
         }

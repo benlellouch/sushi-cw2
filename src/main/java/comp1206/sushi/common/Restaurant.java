@@ -9,6 +9,7 @@ public class Restaurant {
 		this.name = name;
 		this.location = location;
 	}
+	public Restaurant(){}
 	
 	public String getName() {
 		return name;
