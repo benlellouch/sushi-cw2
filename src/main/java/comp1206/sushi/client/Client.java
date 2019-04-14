@@ -4,7 +4,6 @@ package comp1206.sushi.client;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
-import comp1206.sushi.common.Comms;
 import comp1206.sushi.common.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,18 +13,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class  Client extends Listener implements ClientInterface {
 
     private static final Logger logger = LogManager.getLogger("Client");
 
 	public Restaurant restaurant;
-	public ArrayList<Dish> dishes = new ArrayList<Dish>();
-	public ArrayList<Ingredient> ingredients = new ArrayList<Ingredient>();
-	public ArrayList<Order> orders = new ArrayList<Order>();
+	public List<Dish> dishes = new CopyOnWriteArrayList<>();
+	public List<Ingredient> ingredients = new ArrayList<Ingredient>();
+	public List<Order> orders = new ArrayList<Order>();
 //	public ArrayList<User> users = new ArrayList<User>();
-	public ArrayList<Postcode> postcodes = new ArrayList<Postcode>();
-	private ArrayList<UpdateListener> listeners = new ArrayList<UpdateListener>();
+	public List<Postcode> postcodes = new ArrayList<Postcode>();
+	private List<UpdateListener> listeners = new ArrayList<UpdateListener>();
 	private com.esotericsoftware.kryonet.Client client;
 	private User loggedInUser;
 
@@ -44,7 +44,7 @@ public class  Client extends Listener implements ClientInterface {
         //creation of comms client
 		try {
 		    synchronized (this) {
-                client = new com.esotericsoftware.kryonet.Client();
+                client = new com.esotericsoftware.kryonet.Client(16384,16384);
                 client.start();
                 client.connect(5000, "127.0.0.1", 54555, 54777);
             }
@@ -89,14 +89,17 @@ public class  Client extends Listener implements ClientInterface {
                         this.removeDish(dish);
                         System.out.println("Removed Dish");
                         removed = true;
-                        break;
                     }
+
                 }
 
                 if (!removed) {
                     this.addDish(dishToAdd);
                     System.out.println("Added dish");
                 }
+
+
+
 //                if (dishes.contains(dishToAdd)){
 //                	removeDish(dishToAdd);
 //					System.out.println("Removed dish from list");
@@ -120,6 +123,10 @@ public class  Client extends Listener implements ClientInterface {
                 user.getOrders().add(order);
                 this.notifyUpdate();
                 System.out.println("Added Order");
+				System.out.println(order.getUser());
+				for (Map.Entry<Dish, Number> cursor : order.getDishes().entrySet()){
+					System.out.println(cursor.getKey() + " " + cursor.getValue());
+				}
             }
         }
     }
@@ -228,7 +235,6 @@ public class  Client extends Listener implements ClientInterface {
 		order.setDishes(user.getBasket());
 		user.getOrders().add(order);
 		clearBasket(user);
-		client.sendTCP(order);
 		return order;
 	}
 
@@ -279,11 +285,9 @@ public class  Client extends Listener implements ClientInterface {
 	}
 
 	@Override
-	public synchronized void notifyUpdate() {
+	public void notifyUpdate() {
 		try {
-			synchronized (this) {
-				this.listeners.forEach(listener -> listener.updated(new UpdateEvent()));
-			}
+			this.listeners.forEach(listener -> listener.updated(new UpdateEvent()));
 		}catch(NullPointerException e){
 
 		}
@@ -291,18 +295,14 @@ public class  Client extends Listener implements ClientInterface {
 
 	public void addDish(Dish dish){
 	    this.dishes.add(dish);
-	    synchronized (this) {
+	    this.notifyUpdate();
 
-                this.notifyUpdate();
-
-        }
     }
 
     public void removeDish(Dish dish){
 		this.dishes.remove(dish);
-		synchronized (this){
-			this.notifyUpdate();
-		}
+		this.notifyUpdate();
+
 	}
 
 

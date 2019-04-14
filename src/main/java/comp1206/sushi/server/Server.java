@@ -132,8 +132,7 @@ public class Server extends Listener implements ServerInterface {
             System.out.println(request);
             System.out.println(request.isLoginRequest());
             if (request.isInitClientRequest()) {
-
-                users.add(user);
+                this.addUser(user);
                 initialiseClient(connection, user);
             } else if (request.isLoginRequest()) {
                 System.out.println("I get a login request with the username:" + user.getName());
@@ -161,7 +160,7 @@ public class Server extends Listener implements ServerInterface {
             System.out.println("oh shit it's a dish");
         } else if (object instanceof Order){
             Order order = (Order) object;
-            orders.add(order);
+            this.addOrder(order);
         }
     }
 
@@ -584,5 +583,17 @@ public class Server extends Listener implements ServerInterface {
 
     public List<Dish> getDishBeingMade() {
         return dishBeingMade;
+    }
+
+    public Order addOrder(Order order){
+		this.orders.add(order);
+		this.notifyUpdate();
+		return order;
+	}
+
+	public User addUser(User user){
+	    this.users.add(user);
+	    this.notifyUpdate();
+	    return user;
     }
 }
