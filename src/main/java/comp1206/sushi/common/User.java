@@ -1,10 +1,10 @@
 package comp1206.sushi.common;
 
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class User extends Model {
 	
@@ -23,7 +23,7 @@ public class User extends Model {
 		this.address = address;
 		this.postcode = postcode;
 		this.basket = new HashMap<>();
-		this.orders = new ArrayList<>();
+		this.orders = new CopyOnWriteArrayList<>();
 	}
 
 	public String getName() {

@@ -16,10 +16,10 @@ public class Configuration {
     private BufferedReader reader;
     private FileReader file;
     private String fileName;
-    ArrayList<Postcode> postcodeArrayList = new ArrayList<>();
-    ArrayList<Supplier> supplierArrayList = new ArrayList<>();
-    ArrayList<Ingredient> ingredientArrayList = new ArrayList<>();
-    ArrayList<Drone> droneArrayList = new ArrayList<>();
+    private ArrayList<Postcode> postcodeArrayList = new ArrayList<>();
+    private ArrayList<Supplier> supplierArrayList = new ArrayList<>();
+    private ArrayList<Ingredient> ingredientArrayList = new ArrayList<>();
+    private ArrayList<Drone> droneArrayList = new ArrayList<>();
     ArrayList<Staff> staffArrayList = new ArrayList<>();
     ArrayList<User> userArrayList = new ArrayList<>();
     ArrayList<Dish> dishArrayList = new ArrayList<>();

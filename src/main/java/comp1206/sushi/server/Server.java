@@ -27,7 +27,7 @@ public class Server extends Listener implements ServerInterface {
 	public ArrayList<Dish> dishes = new ArrayList<Dish>();
 	public ArrayList<Drone> drones = new ArrayList<Drone>();
 	public ArrayList<Ingredient> ingredients = new ArrayList<Ingredient>();
-	public ArrayList<Order> orders = new ArrayList<Order>();
+	public List<Order> orders = new CopyOnWriteArrayList<>();
 	public ArrayList<Staff> staff = new ArrayList<Staff>();
 	public ArrayList<Supplier> suppliers = new ArrayList<Supplier>();
 	public ArrayList<User> users = new ArrayList<User>();
@@ -64,6 +64,7 @@ public class Server extends Listener implements ServerInterface {
         kryo.register(Postcode.class);
         kryo.register(Restaurant.class);
         kryo.register(Order.class);
+		kryo.register(java.util.concurrent.CopyOnWriteArrayList.class);
         kryo.register(User.class);
         server.addListener(this);
 
@@ -209,10 +210,17 @@ public class Server extends Listener implements ServerInterface {
                     connection.sendTCP(postcode);
                 }
             }
-        } else if (object instanceof Dish){
-            System.out.println("oh shit it's a dish");
         } else if (object instanceof Order){
+			System.out.println("I receive an order object");
             Order order = (Order) object;
+			System.out.println(order.getName() + " " + order.getUser());
+            for (Order cursor :orders){
+				System.out.println(cursor.getName() + " " + cursor.getUser());
+            	if (cursor.getName().equals(order.getName()) && cursor.getUser().getName().equals(order.getUser().getName())){
+            		removeOrder(cursor);
+					System.out.println("Removed order");
+				}
+			}
 
         }
     }
@@ -378,6 +386,7 @@ public class Server extends Listener implements ServerInterface {
 	public void removeOrder(Order order) {
 		int index = this.orders.indexOf(order);
 		this.orders.remove(index);
+		server.sendToAllTCP(order);
 		this.notifyUpdate();
 	}
 	
@@ -583,7 +592,9 @@ public class Server extends Listener implements ServerInterface {
 	@Override
 	public synchronized void notifyUpdate() {
 	    synchronized (this) {
-            this.listeners.forEach(listener -> listener.updated(new UpdateEvent()));
+	    	try {
+				this.listeners.forEach(listener -> listener.updated(new UpdateEvent()));
+			}catch (NullPointerException e){}
         }
 	}
 

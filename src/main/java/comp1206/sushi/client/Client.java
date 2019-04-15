@@ -22,7 +22,7 @@ public class  Client extends Listener implements ClientInterface {
 	public Restaurant restaurant;
 	public List<Dish> dishes = new CopyOnWriteArrayList<>();
 	public List<Ingredient> ingredients = new ArrayList<Ingredient>();
-	public List<Order> orders = new ArrayList<Order>();
+	public List<Order> orders = new CopyOnWriteArrayList<>();
 //	public ArrayList<User> users = new ArrayList<User>();
 	public List<Postcode> postcodes = new ArrayList<Postcode>();
 	private List<UpdateListener> listeners = new ArrayList<UpdateListener>();
@@ -59,6 +59,7 @@ public class  Client extends Listener implements ClientInterface {
         kryo.register(Postcode.class);
         kryo.register(Restaurant.class);
         kryo.register(Order.class);
+        kryo.register(java.util.concurrent.CopyOnWriteArrayList.class);
         kryo.register(User.class);
 
         String string = "getPostcodes";
@@ -106,16 +107,36 @@ public class  Client extends Listener implements ClientInterface {
                 System.out.println(object);
 
             } else if (object instanceof Order) {
+            	boolean removed = false;
+
+
                 Order order = (Order) object;
-                User user = order.getUser();
-                System.out.println(order.getUser().getName());
-                user.getOrders().add(order);
-                this.notifyUpdate();
-                System.out.println("Added Order");
-				System.out.println(order.getUser());
-				for (Map.Entry<Dish, Number> cursor : order.getDishes().entrySet()){
-					System.out.println(cursor.getKey() + " " + cursor.getValue());
+                User user = loggedInUser;
+
+                if(loggedInUser.getName().equals(order.getUser().getName())){
+
+                	for (Order cursor : loggedInUser.getOrders()){
+                		if (cursor.getName().equals(order.getName()) && cursor.getUser().getName().equals(order.getUser().getName())){
+
+                			user.getOrders().remove(cursor);
+                			removed = true;
+							System.out.println("Removed order");
+                			this.notifyUpdate();
+						}
+					}
+
+                	if (!removed) {
+						System.out.println(order.getUser().getName());
+						user.getOrders().add(order);
+						this.notifyUpdate();
+						System.out.println("Added Order");
+						System.out.println(order.getUser());
+						for (Map.Entry<Dish, Number> cursor : order.getDishes().entrySet()) {
+							System.out.println(cursor.getKey() + " " + cursor.getValue());
+						}
+					}
 				}
+
             }else if (object instanceof  Restaurant){
             	Restaurant newRestaurant = (Restaurant) object;
             	restaurant = newRestaurant;
@@ -286,8 +307,9 @@ public class  Client extends Listener implements ClientInterface {
 
 	@Override
 	public void cancelOrder(Order order) {
-        User user = order.getUser();
+        User user = loggedInUser;
         user.getOrders().remove(order);
+        client.sendTCP(order);
         this.notifyUpdate();
 	}
 
