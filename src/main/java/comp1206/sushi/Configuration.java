@@ -144,7 +144,7 @@ public class Configuration {
                     for (Supplier supplier: server.getSuppliers()
                     ) {
                         if (supplier.getName().equals(words[3])){
-                            server.addIngredient(words[1],words[2],supplier, NumberFormat.getInstance().parse(words[4]),NumberFormat.getInstance().parse(words[5]),NumberFormat.getInstance().parse(words[6]));
+                            server.addIngredient(words[1],words[2],supplier, Integer.parseInt(words[4]),Integer.parseInt(words[5]),Integer.parseInt(words[6]));
 //                            Ingredient ingredient = new Ingredient(words[1],words[2],supplier, NumberFormat.getInstance().parse(words[4]),NumberFormat.getInstance().parse(words[5]),NumberFormat.getInstance().parse(words[6]));
 //                            ingredientArrayList.add(ingredient);
                         }
@@ -157,7 +157,7 @@ public class Configuration {
             return ingredientArrayList;
         }catch(IOException e){
 
-        }catch (ParseException e){
+//        }catch (ParseException e){
 
         }
         return null;
@@ -267,14 +267,14 @@ public class Configuration {
                 String[] words = line.split(":");
                 if (words[0].equals("DISH")){
 //                    Dish dish = new Dish(words[1],words[2],NumberFormat.getInstance().parse(words[3]),NumberFormat.getInstance().parse(words[4]),NumberFormat.getInstance().parse(words[5]));
-                    Dish dish = server.addDish(words[1],words[2],NumberFormat.getInstance().parse(words[3]),NumberFormat.getInstance().parse(words[4]),NumberFormat.getInstance().parse(words[5]));
+                    Dish dish = server.addDish(words[1],words[2],Integer.parseInt(words[3]),Integer.parseInt(words[4]),Integer.parseInt(words[5]));
                     String[] ingredients = words[6].split(",");
                     for (String ingredient:ingredients
                          ) {
                         String[] amountAndName = ingredient.split(" \\* ");
                         for(Ingredient newIngredient: server.getIngredients()) {
                             if (amountAndName[1].equals(newIngredient.getName())) {
-                                server.addIngredientToDish(dish, newIngredient, NumberFormat.getInstance().parse(amountAndName[0]));
+                                server.addIngredientToDish(dish, newIngredient, Integer.parseInt(amountAndName[0]));
                             }
                         }
                     }
@@ -286,7 +286,7 @@ public class Configuration {
 
         }catch(IOException e){
 
-        }catch (ParseException e){
+//        }catch (ParseException e){
 
         }
 

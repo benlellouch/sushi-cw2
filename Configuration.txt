@@ -27,10 +27,10 @@ USER:Admin:password:University Road:SO17 1BX
 ORDER:Admin:5 * Sushi Roll,2 * Side Rice
 
 
-STOCK:Rice:50
-STOCK:Vinegar:50
-STOCK:Salt:50
-STOCK:Avocado:50
+STOCK:Rice:50000
+STOCK:Vinegar:5000
+STOCK:Salt:5000
+STOCK:Avocado:5000
 
 
 STAFF:Joshua
