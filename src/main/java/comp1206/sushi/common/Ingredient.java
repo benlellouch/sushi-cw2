@@ -58,7 +58,7 @@ public class Ingredient extends Model {
 	}
 
 	public void setRestockAmount(Number restockAmount) {
-		this.restockAmount = restockAmount;
+		this.restockAmount =  restockAmount;
 	}
 
 	public Number getWeight() {

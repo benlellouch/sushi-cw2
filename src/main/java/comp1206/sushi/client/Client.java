@@ -167,10 +167,11 @@ public class  Client extends Listener implements ClientInterface {
 	    User newUser = new User(username,password,address,postcode);
         Comms registerRequest = new Comms(newUser);
         registerRequest.setInitClientRequest(true);
+        loggedInUser = newUser;
         client.sendTCP(registerRequest);
 
 
-	    return newUser;
+	    return loggedInUser;
 	}
 
 	@Override
@@ -309,7 +310,8 @@ public class  Client extends Listener implements ClientInterface {
 	public void cancelOrder(Order order) {
         User user = loggedInUser;
         user.getOrders().remove(order);
-        client.sendTCP(order);
+		System.out.println(user.getOrders().isEmpty());
+		client.sendTCP(order);
         this.notifyUpdate();
 	}
 

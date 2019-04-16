@@ -217,7 +217,7 @@ public class Server extends Listener implements ServerInterface {
             for (Order cursor :orders){
 				System.out.println(cursor.getName() + " " + cursor.getUser());
             	if (cursor.getName().equals(order.getName()) && cursor.getUser().getName().equals(order.getUser().getName())){
-            		removeOrder(cursor);
+            		cancelOrder(cursor);
 					System.out.println("Removed order");
 				}
 			}
@@ -384,10 +384,14 @@ public class Server extends Listener implements ServerInterface {
 
 	@Override
 	public void removeOrder(Order order) {
-		int index = this.orders.indexOf(order);
-		this.orders.remove(index);
+
+		this.orders.remove(order);
 		server.sendToAllTCP(order);
 		this.notifyUpdate();
+	}
+
+	public void cancelOrder(Order order){
+		this.orders.remove(order);
 	}
 	
 	@Override

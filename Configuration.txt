@@ -12,8 +12,8 @@ SUPPLIER:Sushi Supplies:SO17 1BX
 SUPPLIER:Sushi R Us:SO17 2NJ
 SUPPLIER:Sushi For 4U:SO17 2LB
 
-INGREDIENT:Rice:Grams:Sushi Supplies:1000:5000:1
-INGREDIENT:Vinegar:Grams:Sushi Supplies:100:1000:5
+INGREDIENT:Rice:Grams:Sushi Supplies:100:50:1
+INGREDIENT:Vinegar:Grams:Sushi Supplies:100:10:5
 INGREDIENT:Salt:Grams:Sushi Supplies:50:100:1
 INGREDIENT:Avocado:Units:Sushi R Us:5:10:10
 
@@ -27,10 +27,10 @@ USER:Admin:password:University Road:SO17 1BX
 ORDER:Admin:5 * Sushi Roll,2 * Side Rice
 
 
-STOCK:Rice:50000
-STOCK:Vinegar:50000
-STOCK:Salt:50000
-STOCK:Avocado:5000
+STOCK:Rice:50
+STOCK:Vinegar:50
+STOCK:Salt:50
+STOCK:Avocado:50
 
 
 STAFF:Joshua
