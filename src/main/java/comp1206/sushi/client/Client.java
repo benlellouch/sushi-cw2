@@ -192,7 +192,7 @@ public class  Client extends Listener implements ClientInterface {
 //                return user;
 //            }
 //        }
-        try{Thread.sleep(1000);}
+        try{Thread.sleep(100);}
         catch (InterruptedException e){
 
         }

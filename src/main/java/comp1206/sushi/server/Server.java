@@ -345,7 +345,7 @@ public class Server extends Listener implements ServerInterface {
 
 	@Override
 	public Drone addDrone(Number speed) {
-		Drone mock = new Drone(speed);
+		Drone mock = new Drone(speed, this);
 		this.drones.add(mock);
 		return mock;
 	}
@@ -519,12 +519,7 @@ public class Server extends Listener implements ServerInterface {
 
 	@Override
 	public String getOrderStatus(Order order) {
-		Random rand = new Random();
-		if(rand.nextBoolean()) {
-			return "Complete";
-		} else {
-			return "Pending";
-		}
+		return order.getStatus();
 	}
 	
 	@Override
@@ -663,4 +658,12 @@ public class Server extends Listener implements ServerInterface {
 	    this.notifyUpdate();
 	    return user;
     }
+
+	public Map<Dish, Number> getDishStock() {
+		return dishStock;
+	}
+	public void setDishStock(Dish dish, Number number){
+		this.dishStock.put(dish, number);
+		this.notifyUpdate();
+	}
 }
