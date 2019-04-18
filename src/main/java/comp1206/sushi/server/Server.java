@@ -347,6 +347,8 @@ public class Server extends Listener implements ServerInterface {
 	public Drone addDrone(Number speed) {
 		Drone mock = new Drone(speed, this);
 		this.drones.add(mock);
+		Thread droneThread = new Thread(mock);
+		droneThread.start();
 		return mock;
 	}
 

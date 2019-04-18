@@ -5,6 +5,7 @@ import comp1206.sushi.server.Server;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class Drone extends Model implements Runnable{
 
@@ -27,6 +28,10 @@ public class Drone extends Model implements Runnable{
 
 	private Server server;
 
+	private Order orderToPrepare;
+
+
+
 	public Drone(Number speed, Server server) {
 		this.setSpeed(speed);
 		this.setCapacity(1);
@@ -40,10 +45,48 @@ public class Drone extends Model implements Runnable{
 		enabled = true;
 		while (enabled){
 			if (droneStatus == DroneStatus.IDLE) {
-				Order orderToPrepare = checkForOrders();
+			    synchronized (this) {
+                    this.orderToPrepare = checkForOrders();
+                }
 				if (orderToPrepare != null) {
+                    System.out.println("I ("+ this.getName() +") am preparing this order: " + this.orderToPrepare.getUser() + " " + this.orderToPrepare.getName());
 					prepareOrder(orderToPrepare);
 
+				}
+			} else if (droneStatus == DroneStatus.DELIVERING_ORDER){
+
+			    orderToPrepare.setStatus(Order.OrderStatus.BEING_DELIVERED);
+
+				try{
+					Thread.sleep(1000);
+				}catch(InterruptedException e){
+
+				}
+
+				distanceToDestination -= this.getSpeed().floatValue() * (1/1000d);
+				distanceToRestaurant += this.getSpeed().floatValue() * (1/1000d);
+
+				if(distanceToDestination <= 0 ){
+					orderToPrepare.setStatus(Order.OrderStatus.COMPLETED);
+					this.setStatus(DroneStatus.RETURNING_ORDER);
+				}
+
+			} else if (droneStatus == DroneStatus.RETURNING_ORDER){
+				try{
+					Thread.sleep(1000);
+				}catch(InterruptedException e){
+
+				}
+
+				distanceToDestination += this.getSpeed().floatValue() * (1/1000d);
+				distanceToRestaurant -= this.getSpeed().floatValue() * (1/1000d);
+
+				if(distanceToRestaurant <= 0 ){
+
+					this.setStatus(DroneStatus.IDLE);
+					this.setDestination(null);
+					distanceToRestaurant = 0;
+					distanceToDestination = 0;
 				}
 			}
 
@@ -53,11 +96,13 @@ public class Drone extends Model implements Runnable{
 	}
 
 	public Order checkForOrders(){
+
 		List<Order> orders = server.getOrders();
 		for (Order order: orders) {
 
 			if (order.getOrderStatus() == Order.OrderStatus.BEING_PREPARED){
 				if (checkDishStock(order)){
+
 					return order;
 				}
 			}
@@ -71,9 +116,9 @@ public class Drone extends Model implements Runnable{
 		Map<Dish, Number> dishesFromOrder = order.getDishes();
 		Map<Dish, Number> dishStock = server.getDishStock();
 
-		for (Dish dish: dishesFromOrder.keySet()
-			 ) {
-			if (dishStock.get(dish).intValue() < dishesFromOrder.get(dish).intValue() * dish.getRestockAmount().intValue()){
+		for (Dish dish: dishesFromOrder.keySet()) {
+            System.out.println(dishStock.get(dish) + " " + dishesFromOrder.get(dish));
+			if (dishStock.get(dish).intValue() < dishesFromOrder.get(dish).intValue()){
 				System.out.println("Cannot fulfill order because there aren't enough dishes in stock");
 				return false;
 			}
@@ -90,10 +135,13 @@ public class Drone extends Model implements Runnable{
 
 		for (Dish dish: dishesFromOrder.keySet()){
 			int currentDishStock = server.getDishStock().get(dish).intValue();
-			Number newStock = currentDishStock - dishesFromOrder.get(dish).intValue() * dish.getRestockAmount().intValue();
+			Number newStock = currentDishStock - dishesFromOrder.get(dish).intValue();
 			server.setDishStock(dish, newStock);
-
 		}
+        this.setStatus(DroneStatus.DELIVERING_ORDER);
+        setDestination(order.getUser().getPostcode());
+        distanceToDestination = order.getDistance().floatValue();
+        distanceToRestaurant = 0;
 	}
 
 
@@ -156,11 +204,11 @@ public class Drone extends Model implements Runnable{
 		return status;
 	}
 
-	public float getDistanceToDestination() {
+	public Number getDistanceToDestination() {
 		return distanceToDestination;
 	}
 
-	public float getDistanceToRestaurant() {
+	public Number getDistanceToRestaurant() {
 		return distanceToRestaurant;
 	}
 
