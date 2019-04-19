@@ -61,6 +61,7 @@ public class  Client extends Listener implements ClientInterface {
         kryo.register(Order.class);
         kryo.register(java.util.concurrent.CopyOnWriteArrayList.class);
         kryo.register(User.class);
+        kryo.register(Order.OrderStatus.class);
 
         String string = "getPostcodes";
         client.sendTCP(string);

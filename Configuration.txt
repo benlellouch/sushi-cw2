@@ -24,7 +24,7 @@ DISH:Side Chick:Side portion of chick:150:1:10:10 * Avocado
 USER:Admin:password:University Road:SO17 1BX
 
 
-ORDER:Admin:5 * Sushi Roll,2 * Side Rice
+ORDER:Admin:2 * Sushi Roll
 
 
 STOCK:Rice:50000

@@ -11,11 +11,8 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -37,6 +34,7 @@ public class Server extends Listener implements ServerInterface {
 	private Map<Dish, Number> dishStock = new ConcurrentHashMap<>();
 	private List<Dish> dishBeingMade = new CopyOnWriteArrayList<>();
 	private com.esotericsoftware.kryonet.Server server;
+	private Queue<Order> orderQueue = new LinkedList<>();
 
 
 
@@ -45,6 +43,7 @@ public class Server extends Listener implements ServerInterface {
         Postcode postcode = new Postcode("SO17 1BX");
         restaurant = new Restaurant("Southampton Sushi", postcode);
         loadConfiguration("Configuration.txt");
+
 
         //creation of the comms server
 		try {
@@ -66,6 +65,7 @@ public class Server extends Listener implements ServerInterface {
         kryo.register(Order.class);
 		kryo.register(java.util.concurrent.CopyOnWriteArrayList.class);
         kryo.register(User.class);
+        kryo.register(Order.OrderStatus.class);
         server.addListener(this);
 
 
@@ -178,7 +178,7 @@ public class Server extends Listener implements ServerInterface {
                         String[] amountAndName = dish.split(" \\* ");
 
                         for(Dish newDish: this.getDishes()) {
-                            System.out.println(amountAndName[1] + " and the newDish: " + newDish.getName() +  " length of array");
+//                            System.out.println(amountAndName[1] + " and the newDish: " + newDish.getName() +  " length of array");
 
                             if (amountAndName[1].equals(newDish.getName())) {
                                 try {
@@ -561,6 +561,7 @@ public class Server extends Listener implements ServerInterface {
 	public Order addOrder(User user){
 	    Order order = new Order(user);
 	    orders.add(order);
+		orderQueue.add(order);
 	    this.notifyUpdate();
 	    return order;
     }
@@ -667,5 +668,9 @@ public class Server extends Listener implements ServerInterface {
 	public void setDishStock(Dish dish, Number number){
 		this.dishStock.put(dish, number);
 		this.notifyUpdate();
+	}
+
+	public Queue<Order> getOrderQueue() {
+		return orderQueue;
 	}
 }
