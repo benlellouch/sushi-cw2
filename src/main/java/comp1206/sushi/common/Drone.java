@@ -65,6 +65,7 @@ public class Drone extends Model implements Runnable{
 
 									boolean orderReady = checkDishStock(order);
 									if (orderReady) {
+									    order.setStatus(Order.OrderStatus.BEING_DELIVERED);
 										prepareOrder(order);
 									}
 
