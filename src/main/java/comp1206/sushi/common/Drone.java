@@ -55,21 +55,25 @@ public class Drone extends Model implements Runnable{
 				if (droneStatus == DroneStatus.IDLE) {
 
 					synchronized (server) {
+						List<Order> orders = server.getOrders();
+						Map<Dish, Number> dishStock = server.getDishStock();
+						synchronized (orders) {
+							for (Order order : orders) {
 
-						if (!(server.getOrderQueue().isEmpty())) {
 
-							orderToPrepare = server.getOrderQueue().peek();
-							System.out.println("--------------------------------------------I am going to check for stock for" + orderToPrepare.getName());
-							boolean orderInStock = checkDishStock(orderToPrepare);
-							if(orderInStock){
+								if (order.getOrderStatus() == Order.OrderStatus.BEING_PREPARED) {
 
-								orderToPrepare = server.getOrderQueue().remove();
-								System.out.println("Apparently everything is in stock so i'm going to prepare" + orderToPrepare.getName());
-								prepareOrder(orderToPrepare);
+									boolean orderReady = checkDishStock(order);
+									if (orderReady) {
+										prepareOrder(order);
+									}
+
+								}
 							}
-						} else {
 
 						}
+
+
 					}
 
 
@@ -140,7 +144,7 @@ public class Drone extends Model implements Runnable{
 		for (Dish dish: dishesFromOrder.keySet()) {
 
 			if (dishStock.get(dish).intValue() < dishesFromOrder.get(dish).intValue()){
-				System.out.println("Cannot fulfill order because there aren't enough dishes in stock");
+//				System.out.println("Cannot fulfill order because there aren't enough dishes in stock");
 				return false;
 			}
 
@@ -151,7 +155,7 @@ public class Drone extends Model implements Runnable{
 
 	}
 
-	public void prepareOrder(Order order){
+	public synchronized void prepareOrder(Order order){
 		Map<Dish, Number> dishesFromOrder = order.getDishes();
 
 		for (Dish dish: dishesFromOrder.keySet()){

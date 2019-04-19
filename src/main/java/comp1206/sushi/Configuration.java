@@ -37,10 +37,10 @@ public class Configuration {
         getIngredients();
         getDishes();
         getStock();
-        getDrone();
         getStaff();
         getUsers();
         getOrders();
+        getDrone();
 
 
 //        try {
