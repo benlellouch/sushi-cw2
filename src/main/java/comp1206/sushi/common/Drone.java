@@ -70,6 +70,7 @@ public class Drone extends Model implements Runnable{
 									if (orderReady) {
                                         orderToPrepare = order;
 									    order.setStatus(Order.OrderStatus.BEING_DELIVERED);
+                                        this.setStatus(DroneStatus.DELIVERING_ORDER);
 										prepareOrder(order);
 									}
 
@@ -79,15 +80,15 @@ public class Drone extends Model implements Runnable{
 						}
 
 
+                        if(droneStatus == DroneStatus.IDLE) {
+                            for (Map.Entry<Ingredient, Number> cursor : ingredientStock.entrySet()) {
 
-						for (Map.Entry<Ingredient, Number> cursor : ingredientStock.entrySet()) {
-
-                                if(cursor.getKey().getStatus() != Ingredient.IngredientStatus.BEING_RESTOCKED) {
+                                if (cursor.getKey().getStatus() != Ingredient.IngredientStatus.BEING_RESTOCKED) {
 
                                     if (cursor.getValue().intValue() < server.getRestockThreshold(cursor.getKey()).intValue()) {
                                         ingredientToRestock = cursor.getKey();
                                         ingredientToRestock.setStatus(Ingredient.IngredientStatus.BEING_RESTOCKED);
-                                        System.out.println(this.speed +" "+ ingredientToRestock.getName() + " " + ingredientToRestock.getStatus());
+                                        System.out.println(this.speed + " " + ingredientToRestock.getName() + " " + ingredientToRestock.getStatus());
                                         distanceToDestination = cursor.getKey().getSupplier().getDistance().floatValue();
                                         destinationRestaurantDistance = distanceToDestination;
                                         distanceToRestaurant = 0;
@@ -98,7 +99,8 @@ public class Drone extends Model implements Runnable{
                                     }
                                 }
 
-						}
+                            }
+                        }
 
 
 
@@ -240,7 +242,6 @@ public class Drone extends Model implements Runnable{
 			System.out.println("this is the new stock");
 			server.setDishStock(dish, newStock);
 		}
-        this.setStatus(DroneStatus.DELIVERING_ORDER);
 		setSource(server.getRestaurantPostcode());
         setDestination(order.getUser().getPostcode());
         distanceToDestination = order.getDistance().floatValue();
