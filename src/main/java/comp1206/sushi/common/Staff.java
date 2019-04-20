@@ -81,12 +81,12 @@ public class Staff extends Model implements Runnable{
     public void  prepareDish(Dish dish){
         this.setStatus("Making: " + dish.getName());
         Map<Ingredient, Number> ingredients = dish.getRecipe();
-        int timetoRestock = random.nextInt(60000);
+        int timetoRestock = random.nextInt(6000);
         int dishRestockThreshold = dish.getRestockThreshold().intValue();
         int currentDishStock = server.getDishStockLevels().get(dish).intValue();
         Number newDishStock = currentDishStock + dish.getRestockAmount().intValue();
-        if (timetoRestock < 20000){
-            timetoRestock+= 20000;
+        if (timetoRestock < 2000){
+            timetoRestock+= 2000;
         }
         for (Ingredient ingredient: ingredients.keySet()){
             int currentIngredientSock = server.getIngredientStockLevels().get(ingredient).intValue();

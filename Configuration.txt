@@ -22,20 +22,21 @@ DISH:Side Rice:Side portion of rice:5:1:10:500 * Rice
 DISH:Side Chick:Side portion of chick:150:1:10:10 * Avocado
 
 USER:Admin:password:University Road:SO17 1BX
+USER:Ahmed:password:University Road:SO17 2LB
 
 
 ORDER:Admin:2 * Sushi Roll
+ORDER:Ahmed:3 * Side Rice
 
 
 STOCK:Rice:50000
 STOCK:Vinegar:5000
-STOCK:Salt:5000
-STOCK:Avocado:5000
+
 
 
 STAFF:Joshua
 STAFF:Mary
 STAFF:Behrad
 
-DRONE:10
-DRONE:20
+DRONE:30
+DRONE:30

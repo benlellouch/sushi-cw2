@@ -8,6 +8,7 @@ public class Ingredient extends Model {
 	private Number restockThreshold;
 	private Number restockAmount;
 	private Number weight;
+	private IngredientStatus status;
 
 	public Ingredient(){}
 
@@ -19,6 +20,8 @@ public class Ingredient extends Model {
 		this.setRestockThreshold(restockThreshold);
 		this.setRestockAmount(restockAmount);
 		this.setWeight(weight);
+		this.status = IngredientStatus.IN_STOCK;
+
 	}
 
 	public String getName() {
@@ -67,6 +70,20 @@ public class Ingredient extends Model {
 
 	public void setWeight(Number weight) {
 		this.weight = weight;
+	}
+
+	public void setStatus(IngredientStatus status){
+		this.status = status;
+	}
+
+	public IngredientStatus getStatus(){
+			return this.status;
+	}
+
+	public enum IngredientStatus{
+		BEING_RESTOCKED,
+		IN_STOCK,
+
 	}
 
 }

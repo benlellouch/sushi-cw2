@@ -22,6 +22,7 @@ public class Drone extends Model implements Runnable{
 
 	private float distanceToDestination;
 	private float distanceToRestaurant;
+	private float destinationRestaurantDistance;
 
 	private DroneStatus droneStatus;
 	private boolean enabled;
@@ -29,6 +30,7 @@ public class Drone extends Model implements Runnable{
 	private Server server;
 
 	private Order orderToPrepare;
+	private Ingredient ingredientToRestock;
 
 
 
@@ -57,6 +59,7 @@ public class Drone extends Model implements Runnable{
 					synchronized (server) {
 						List<Order> orders = server.getOrders();
 						Map<Dish, Number> dishStock = server.getDishStock();
+						Map<Ingredient, Number> ingredientStock = server.getIngredientStockLevels();
 						synchronized (orders) {
 							for (Order order : orders) {
 
@@ -65,6 +68,7 @@ public class Drone extends Model implements Runnable{
 
 									boolean orderReady = checkDishStock(order);
 									if (orderReady) {
+                                        orderToPrepare = order;
 									    order.setStatus(Order.OrderStatus.BEING_DELIVERED);
 										prepareOrder(order);
 									}
@@ -75,44 +79,83 @@ public class Drone extends Model implements Runnable{
 						}
 
 
+
+						for (Map.Entry<Ingredient, Number> cursor : ingredientStock.entrySet()) {
+
+                                if(cursor.getKey().getStatus() != Ingredient.IngredientStatus.BEING_RESTOCKED) {
+
+                                    if (cursor.getValue().intValue() < server.getRestockThreshold(cursor.getKey()).intValue()) {
+                                        ingredientToRestock = cursor.getKey();
+                                        ingredientToRestock.setStatus(Ingredient.IngredientStatus.BEING_RESTOCKED);
+                                        System.out.println(this.speed +" "+ ingredientToRestock.getName() + " " + ingredientToRestock.getStatus());
+                                        distanceToDestination = cursor.getKey().getSupplier().getDistance().floatValue();
+                                        destinationRestaurantDistance = distanceToDestination;
+                                        distanceToRestaurant = 0;
+                                        this.setStatus(DroneStatus.COLLECTING_INGREDIENTS);
+                                        setDestination(ingredientToRestock.getSupplier().getPostcode());
+                                        setSource(server.getRestaurantPostcode());
+                                        break;
+                                    }
+                                }
+
+						}
+
+
+
+
+
 					}
 
 
 				} else if (droneStatus == DroneStatus.DELIVERING_ORDER) {
 
 
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-
-					}
-
-					distanceToDestination -= this.getSpeed().floatValue() * (1 / 1000d);
-					distanceToRestaurant += this.getSpeed().floatValue() * (1 / 1000d);
+					goToDestination();
 
 					if (distanceToDestination <= 0) {
 						orderToPrepare.setStatus(Order.OrderStatus.COMPLETED);
 						this.setStatus(DroneStatus.RETURNING_ORDER);
+						setSource(orderToPrepare.getUser().getPostcode());
+						setDestination(server.getRestaurantPostcode());
 					}
 
 				} else if (droneStatus == DroneStatus.RETURNING_ORDER) {
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
 
-					}
-
-					distanceToDestination += this.getSpeed().floatValue() * (1 / 1000d);
-					distanceToRestaurant -= this.getSpeed().floatValue() * (1 / 1000d);
+					goToRestaurant();
 
 					if (distanceToRestaurant <= 0) {
 
 						this.setStatus(DroneStatus.IDLE);
+						this.setSource(null);
 						this.setDestination(null);
 						distanceToRestaurant = 0;
 						distanceToDestination = 0;
+						setProgress(null);
 					}
-				}
+				} else if (droneStatus == DroneStatus.COLLECTING_INGREDIENTS){
+
+				    goToDestination();
+
+                    if (distanceToDestination<= 0){
+                        this.setStatus(DroneStatus.RETURNING_INGREDIENTS);
+                        setSource(ingredientToRestock.getSupplier().getPostcode());
+                        setDestination(server.getRestaurantPostcode());
+                    }
+                } else if (droneStatus == DroneStatus.RETURNING_INGREDIENTS){
+
+				    goToRestaurant();
+
+                    if (distanceToRestaurant <= 0 ){
+                        restockIngredients(ingredientToRestock);
+                        ingredientToRestock.setStatus(Ingredient.IngredientStatus.IN_STOCK);
+                        this.setStatus(DroneStatus.IDLE);
+                        this.setSource(null);
+                        this.setDestination(null);
+                        distanceToRestaurant = 0;
+                        distanceToDestination = 0;
+                        setProgress(null);
+                    }
+                }
 
 
 			}
@@ -134,6 +177,38 @@ public class Drone extends Model implements Runnable{
 //
 //		return null;
 //	}
+
+
+    public void goToDestination(){
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+
+        }
+
+        distanceToDestination -= this.getSpeed().floatValue() * (1 / 1000d);
+        distanceToRestaurant += this.getSpeed().floatValue() * (1 / 1000d);
+        setProgress((int)((distanceToRestaurant/destinationRestaurantDistance)*100));
+    }
+
+    public void goToRestaurant(){
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+
+        }
+
+        distanceToDestination += this.getSpeed().floatValue() * (1 / 1000d);
+        distanceToRestaurant -= this.getSpeed().floatValue() * (1 / 1000d);
+        setProgress((int)((distanceToDestination/destinationRestaurantDistance)*100));
+
+    }
+
+
+    public  void restockIngredients(Ingredient ingredient){
+	    server.getIngredientStockLevels().put(ingredient, ingredient.getRestockAmount());
+
+    }
 
 
 	public synchronized boolean checkDishStock(Order order){
@@ -166,8 +241,10 @@ public class Drone extends Model implements Runnable{
 			server.setDishStock(dish, newStock);
 		}
         this.setStatus(DroneStatus.DELIVERING_ORDER);
+		setSource(server.getRestaurantPostcode());
         setDestination(order.getUser().getPostcode());
         distanceToDestination = order.getDistance().floatValue();
+        destinationRestaurantDistance = distanceToDestination;
         distanceToRestaurant = 0;
 	}
 
@@ -246,15 +323,15 @@ public class Drone extends Model implements Runnable{
 			notifyUpdate("status", this.status, idle );
 			this.status = idle;
 		} else if (status == DroneStatus.COLLECTING_INGREDIENTS ) {
-			String collectingIngredients = "Collecting Ingredients";
+			String collectingIngredients = "Collecting " + ingredientToRestock.getName();
 			notifyUpdate("status", this.status, collectingIngredients );
 			this.status = collectingIngredients;
 		} else if (status == DroneStatus.RETURNING_INGREDIENTS){
-			String returningIngredients = "Returning with Ingredients";
+			String returningIngredients = "Returning with " + ingredientToRestock.getName();
 			notifyUpdate("status", this.status, returningIngredients );
 			this.status = returningIngredients;
 		} else if (status == DroneStatus.DELIVERING_ORDER){
-			String deliveringOrder = "Delivering Order";
+			String deliveringOrder = "Delivering " + orderToPrepare.getUser() + "'s order";
 			notifyUpdate("status", this.status, deliveringOrder );
 			this.status = deliveringOrder;
 		} else if (status == DroneStatus.RETURNING_ORDER){
