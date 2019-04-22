@@ -62,6 +62,7 @@ public class  Client extends Listener implements ClientInterface {
         kryo.register(java.util.concurrent.CopyOnWriteArrayList.class);
         kryo.register(User.class);
         kryo.register(Order.OrderStatus.class);
+        kryo.register(Ingredient.IngredientStatus.class);
 
         String string = "getPostcodes";
         client.sendTCP(string);
@@ -144,7 +145,24 @@ public class  Client extends Listener implements ClientInterface {
 			}else if(object instanceof  Postcode){
                 Postcode postcode = (Postcode) object;
                 this.addPostcode(postcode);
-            }
+            }else if(object instanceof Comms){
+            	Comms orderStatusUpdate = (Comms) object;
+				System.out.println("I receive a comms object");
+            	if (orderStatusUpdate.isOrderStatusUpdate()){
+					System.out.println("The status update is correct wola");
+            		if (orderStatusUpdate.getUser().getName().equals(loggedInUser.getName())){
+						System.out.println("the users are equals");
+            			for (Order order: loggedInUser.getOrders()){
+            				if (order.getName().equals(orderStatusUpdate.getOrderString())){
+
+            					order.setStatus(orderStatusUpdate.getOrderStatus());
+            					this.notifyUpdate();
+							}
+						}
+					}
+
+				}
+			}
 
     }
 	
@@ -270,6 +288,7 @@ public class  Client extends Listener implements ClientInterface {
 
 //		client.sendTCP(orderRequest);
 		clearBasket(user);
+		this.notifyUpdate();
 		return order;
 	}
 
@@ -286,14 +305,16 @@ public class  Client extends Listener implements ClientInterface {
 
 	@Override
 	public boolean isOrderComplete(Order order) {
-		// TODO Auto-generated method stub
+		if (order.getOrderStatus() == Order.OrderStatus.COMPLETED){
+			return true;
+		}
+
 		return false;
 	}
 
 	@Override
 	public String getOrderStatus(Order order) {
-		// TODO Auto-generated method stub
-		return "test";
+		return order.getStatus();
 	}
 
 	@Override

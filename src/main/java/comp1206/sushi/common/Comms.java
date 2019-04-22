@@ -9,9 +9,12 @@ public class Comms {
     private boolean initClientRequest;
     private boolean loginRequest;
     private boolean orderRequest;
+    private boolean orderStatusUpdate;
+
     private User user;
     private Map<String, Number> orderDishes;
     private String orderString;
+    private Order.OrderStatus orderStatus;
 
     public Comms (User user, Map<String, Number> orderDishes){
         this.initClientRequest = false;
@@ -34,7 +37,15 @@ public class Comms {
         this.orderString = string;
     }
 
-    public Comms(){
+    public Comms(){}
+
+    public Comms(String orderName, User orderUser, Order.OrderStatus orderStatus ){
+        this.initClientRequest = false;
+        this.loginRequest = false;
+        this.orderRequest=false;
+        this.orderString = orderName;
+        this.user = orderUser;
+        this.orderStatus = orderStatus;
     }
 
     public boolean isInitClientRequest() {
@@ -69,5 +80,17 @@ public class Comms {
 
     public String getOrderString() {
         return orderString;
+    }
+
+    public Order.OrderStatus getOrderStatus() {
+        return orderStatus;
+    }
+
+    public boolean isOrderStatusUpdate() {
+        return orderStatusUpdate;
+    }
+
+    public void setOrderStatusUpdate(boolean orderStatusUpdate) {
+        this.orderStatusUpdate = orderStatusUpdate;
     }
 }

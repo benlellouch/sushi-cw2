@@ -34,7 +34,7 @@ public class Server extends Listener implements ServerInterface {
 	private Map<Dish, Number> dishStock = new ConcurrentHashMap<>();
 	private List<Dish> dishBeingMade = new CopyOnWriteArrayList<>();
 	private com.esotericsoftware.kryonet.Server server;
-	private Queue<Order> orderQueue = new LinkedList<>();
+
 
 
 
@@ -66,6 +66,7 @@ public class Server extends Listener implements ServerInterface {
 		kryo.register(java.util.concurrent.CopyOnWriteArrayList.class);
         kryo.register(User.class);
         kryo.register(Order.OrderStatus.class);
+		kryo.register(Ingredient.IngredientStatus.class);
         server.addListener(this);
 
 
@@ -431,7 +432,7 @@ public class Server extends Listener implements ServerInterface {
 
 	@Override
 	public Number getOrderDistance(Order order) {
-		Order mock = (Order)order;
+		Order mock = order;
 		return mock.getDistance();
 	}
 
@@ -516,32 +517,26 @@ public class Server extends Listener implements ServerInterface {
 
 	@Override
 	public boolean isOrderComplete(Order order) {
-		return true;
+		if(order.getOrderStatus() == Order.OrderStatus.COMPLETED){
+			return true;
+		}
+		return false;
 	}
 
 	@Override
 	public String getOrderStatus(Order order) {
+
 		return order.getStatus();
 	}
 	
 	@Override
 	public String getDroneStatus(Drone drone) {
-		Random rand = new Random();
-		if(rand.nextBoolean()) {
-			return "Idle";
-		} else {
-			return "Flying";
-		}
+		return drone.getStatus();
 	}
 	
 	@Override
 	public String getStaffStatus(Staff staff) {
-		Random rand = new Random();
-		if(rand.nextBoolean()) {
-			return "Idle";
-		} else {
-			return "Working";
-		}
+		return staff.getStatus();
 	}
 
 	@Override
@@ -561,7 +556,6 @@ public class Server extends Listener implements ServerInterface {
 	public Order addOrder(User user){
 	    Order order = new Order(user);
 	    orders.add(order);
-		orderQueue.add(order);
 	    this.notifyUpdate();
 	    return order;
     }
@@ -670,7 +664,13 @@ public class Server extends Listener implements ServerInterface {
 		this.notifyUpdate();
 	}
 
-	public Queue<Order> getOrderQueue() {
-		return orderQueue;
+	public void updateClientOrderStatus(Order order){
+
+		Comms orderUpdate = new Comms(order.getName(), order.getUser(), order.getOrderStatus());
+		orderUpdate.setOrderStatusUpdate(true);
+		server.sendToAllTCP(orderUpdate);
+
 	}
+
+
 }

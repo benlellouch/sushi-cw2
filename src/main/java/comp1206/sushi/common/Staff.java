@@ -70,7 +70,7 @@ public class Staff extends Model implements Runnable{
 
 	    for (Ingredient ingredient: ingredients.keySet()){
 	        if (ingredientStock.get(ingredient).intValue() <  ingredients.get(ingredient).intValue() * dish.getRestockAmount().intValue()){
-                System.out.println("Cannot make "+ dish.getName() +" because there aren't enough ingredients");
+//                System.out.println("Cannot make "+ dish.getName() +" because there aren't enough ingredients");
                 return false;
             }
         }

@@ -23,7 +23,7 @@ public class UpdateEvent {
 	 * @param model the model being updated
 	 */
 	public UpdateEvent(Model model) {
-		synchronized (this){this.model = model;}
+		this.model = model;
 	}
 	
 	/**
@@ -34,12 +34,11 @@ public class UpdateEvent {
 	 * @param newValue the newly updated value
 	 */
 	public UpdateEvent(Model model, String property, Object oldValue, Object newValue) {
-		synchronized (this) {
 			this.model = model;
 			this.property = property;
 			this.oldValue = oldValue;
 			this.newValue = newValue;
-		}
+
 	}
 
 

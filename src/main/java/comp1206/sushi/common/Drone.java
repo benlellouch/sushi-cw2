@@ -334,10 +334,12 @@ public class Drone extends Model implements Runnable{
 		} else if (status == DroneStatus.DELIVERING_ORDER){
 			String deliveringOrder = "Delivering " + orderToPrepare.getUser() + "'s order";
 			notifyUpdate("status", this.status, deliveringOrder );
+			server.updateClientOrderStatus(orderToPrepare);
 			this.status = deliveringOrder;
 		} else if (status == DroneStatus.RETURNING_ORDER){
 			String returningOrder = "Returning to Restaurant";
 			notifyUpdate("status", this.status, returningOrder );
+			server.updateClientOrderStatus(orderToPrepare);
 			this.status = returningOrder;
 		}
 	}
