@@ -208,7 +208,7 @@ public class Drone extends Model implements Runnable{
 
 
     public  void restockIngredients(Ingredient ingredient){
-	    server.getIngredientStockLevels().put(ingredient, ingredient.getRestockAmount());
+	    server.getIngredientStockLevels().put(ingredient, ingredient.getRestockAmount().intValue() + server.getIngredientStockLevels().get(ingredient).intValue());
 
     }
 

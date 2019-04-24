@@ -15,9 +15,9 @@ SUPPLIER:Sushi For 4U:SO17 2LB
 INGREDIENT:Rice:Grams:Sushi Supplies:100:50:1
 INGREDIENT:Vinegar:Grams:Sushi Supplies:100:10:5
 INGREDIENT:Salt:Grams:Sushi Supplies:50:100:1
-INGREDIENT:Avocado:Units:Sushi R Us:5:10:10
+INGREDIENT:Avocado:Units:Sushi R Us:500:100:10
 
-DISH:Sushi Roll:Rice and things:10:1:10:150 * Rice,30 * Vinegar,10 * Salt,1 * Avocado
+DISH:Sushi Roll:Rice and things:10:3:1:150 * Rice,30 * Vinegar,10 * Salt,1 * Avocado
 DISH:Side Rice:Side portion of rice:5:1:10:500 * Rice
 DISH:Side Chick:Side portion of chick:150:1:10:10 * Avocado
 

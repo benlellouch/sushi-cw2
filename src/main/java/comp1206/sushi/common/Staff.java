@@ -43,7 +43,7 @@ public class Staff extends Model implements Runnable{
                     for (Map.Entry<Dish, Number> dishNumberEntry : dishStock.entrySet()) {
                         synchronized (this) {
                             if (!server.isBeingMade(dishNumberEntry.getKey())) {
-                                if (dishNumberEntry.getValue().intValue() <= dishNumberEntry.getKey().getRestockThreshold().intValue()) {
+                                if (dishNumberEntry.getValue().intValue() < dishNumberEntry.getKey().getRestockThreshold().intValue()) {
                                     if (checkIngredientStock(dishNumberEntry.getKey())) {
                                         synchronized (server) {
                                             server.addDishBeingMade(dishNumberEntry.getKey());

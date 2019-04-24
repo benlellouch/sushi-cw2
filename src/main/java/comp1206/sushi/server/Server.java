@@ -142,7 +142,7 @@ public class Server extends Listener implements ServerInterface {
             } else if (request.isLoginRequest()) {
                 System.out.println("I get a login request with the username:" + user.getName());
                 for (User cursor : users) {
-                    if (user.getName().equals(cursor.getName())) {
+                    if (user.getName().equals(cursor.getName()) && user.getPassword().equals(cursor.getPassword())) {
                         connection.sendTCP(cursor);
                         System.out.println("I sent out the user that the client wants: " + cursor.getName());
                         initialiseClient(connection, cursor);
