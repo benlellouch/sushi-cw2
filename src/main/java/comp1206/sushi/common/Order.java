@@ -2,12 +2,13 @@ package comp1206.sushi.common;
 
 import com.sun.org.apache.xpath.internal.operations.Or;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Order extends Model {
+public class Order extends Model implements Serializable {
 
 	private String status;
 	private User user;

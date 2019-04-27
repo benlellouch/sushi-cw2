@@ -4,11 +4,15 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import comp1206.sushi.Configuration;
+import comp1206.sushi.DataPersistence;
 import comp1206.sushi.common.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.*;
@@ -21,15 +25,15 @@ public class Server extends Listener implements ServerInterface {
     private static final Logger logger = LogManager.getLogger("Server");
 	
 	public Restaurant restaurant;
-	public ArrayList<Dish> dishes = new ArrayList<Dish>();
-	public ArrayList<Drone> drones = new ArrayList<Drone>();
-	public ArrayList<Ingredient> ingredients = new ArrayList<Ingredient>();
+	public List<Dish> dishes = new CopyOnWriteArrayList<>();
+	public List<Drone> drones = new CopyOnWriteArrayList<>();
+	public List<Ingredient> ingredients = new CopyOnWriteArrayList<>();
 	public List<Order> orders = new CopyOnWriteArrayList<>();
-	public ArrayList<Staff> staff = new ArrayList<Staff>();
-	public ArrayList<Supplier> suppliers = new ArrayList<Supplier>();
-	public ArrayList<User> users = new ArrayList<User>();
-	public ArrayList<Postcode> postcodes = new ArrayList<Postcode>();
-	private ArrayList<UpdateListener> listeners = new ArrayList<UpdateListener>();
+	public List<Staff> staff = new CopyOnWriteArrayList<>();
+	public List<Supplier> suppliers = new CopyOnWriteArrayList<>();
+	public List<User> users = new CopyOnWriteArrayList<>();
+	public List<Postcode> postcodes = new CopyOnWriteArrayList<>();
+	private List<UpdateListener> listeners = new CopyOnWriteArrayList<>();
 	private Map<Ingredient, Number> ingredientStock = new ConcurrentHashMap<>();
 	private Map<Dish, Number> dishStock = new ConcurrentHashMap<>();
 	private List<Dish> dishBeingMade = new CopyOnWriteArrayList<>();
@@ -42,7 +46,17 @@ public class Server extends Listener implements ServerInterface {
         logger.info("Starting up server...");
         Postcode postcode = new Postcode("SO17 1BX");
         restaurant = new Restaurant("Southampton Sushi", postcode);
-        loadConfiguration("Configuration.txt");
+        try {
+			DataPersistence dataPersistence = new DataPersistence(this);
+			Thread dataPersistenceThread = new Thread(dataPersistence);
+			dataPersistenceThread.start();
+		}catch (IOException e){
+        	e.printStackTrace();
+
+		}
+//        this.loadConfiguration("Configuration.txt");
+//		Configuration configuration = new Configuration("src/main/java/comp1206/sushi/Configuration.txt", this);
+
 
 
         //creation of the comms server
@@ -503,7 +517,35 @@ public class Server extends Listener implements ServerInterface {
         dishStock.clear();
         suppliers.clear();
         postcodes.clear();
-        Configuration configuration = new Configuration(filename, this);
+        dishBeingMade.clear();
+        if(filename.contains(".txt")) {
+			Configuration configuration = new Configuration(filename, this);
+		}else if(filename.contains(".data")){
+			System.out.println("I do get here");
+        	try {
+				File inFile = new File("SerialOutput.data");
+				FileInputStream fis = new FileInputStream(inFile);
+				ObjectInputStream ois = new ObjectInputStream(fis);
+				postcodes = (List<Postcode>) ois.readObject();
+				restaurant = (Restaurant) ois.readObject();
+				staff = (List<Staff>) ois.readObject();
+				System.out.println("I do get here");
+				for (Staff cursor: staff
+					 ) {
+
+					System.out.println(cursor.getName());
+
+				}
+
+
+
+			}catch (IOException e){
+        		e.printStackTrace();
+			} catch (ClassNotFoundException e){
+				e.printStackTrace();
+			}
+
+		}
 
 	}
 

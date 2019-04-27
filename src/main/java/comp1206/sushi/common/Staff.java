@@ -2,10 +2,11 @@ package comp1206.sushi.common;
 
 import comp1206.sushi.server.Server;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Random;
 
-public class Staff extends Model implements Runnable{
+public class Staff extends Model implements Runnable, Serializable {
 
 	private String name;
 	private String status;
@@ -30,11 +31,19 @@ public class Staff extends Model implements Runnable{
     }
 
 	public synchronized void checkDishStock(){
-        Map<Dish, Number> dishStock = server.getDishStockLevels();
-
         while (true) {
+            Map<Dish, Number> dishStock = server.getDishStockLevels();
+            if (this.fatigue.intValue() >= 100){
+                try{
+                    this.setStatus("Taking a break");
+                    Thread.sleep(60000);
+                    this.setFatigue(0);
+                }catch (InterruptedException e){
+
+                }
+            }
             try {
-                int randomsleep = random.nextInt(1000);
+                int randomsleep = random.nextInt(100);
                 Thread.sleep(randomsleep);
             }catch (InterruptedException e){
                 System.out.println("Oof");
@@ -100,7 +109,7 @@ public class Staff extends Model implements Runnable{
             e.printStackTrace();
         }
         this.setStatus("Idle");
-
+        this.setFatigue(fatigue.intValue() + 10);
         server.removeDishBeingMade(dish);
 
     }

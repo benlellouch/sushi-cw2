@@ -1,5 +1,6 @@
 package comp1206.sushi.common;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -8,7 +9,7 @@ import java.util.Queue;
  * that (hopefully) only one drone delivers the same order.
  * **/
 
-public class OrderTask {
+public class OrderTask implements Serializable {
 
     private Queue<Order> orderQueue;
 

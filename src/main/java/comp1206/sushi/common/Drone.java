@@ -3,11 +3,12 @@ package comp1206.sushi.common;
 import comp1206.sushi.common.Drone;
 import comp1206.sushi.server.Server;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public class Drone extends Model implements Runnable{
+public class Drone extends Model implements Runnable, Serializable {
 
 	private Number speed;
 	private Number progress;
