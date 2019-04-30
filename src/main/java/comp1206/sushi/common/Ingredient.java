@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 public class Ingredient extends Model implements Serializable {
 
+
+
 	private String name;
 	private String unit;
 	private Supplier supplier;

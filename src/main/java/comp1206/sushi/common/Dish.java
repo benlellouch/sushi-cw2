@@ -6,6 +6,7 @@ import java.util.Map;
 
 public class Dish extends Model implements Serializable {
 
+
 	private String name;
 	private String description;
 	private Number price;

@@ -10,25 +10,26 @@ import java.util.Random;
 
 public class Drone extends Model implements Runnable, Serializable {
 
+
 	private Number speed;
-	private Number progress;
+	private transient Number progress;
 	
 	private Number capacity;
 	private Number battery;
 	
-	private String status;
+	private transient String status;
 	
-	private Postcode source;
-	private Postcode destination;
+	private transient Postcode source;
+	private transient Postcode destination;
 
-	private float distanceToDestination;
-	private float distanceToRestaurant;
-	private float destinationRestaurantDistance;
+	private transient float distanceToDestination;
+	private transient float distanceToRestaurant;
+	private transient float destinationRestaurantDistance;
 
-	private DroneStatus droneStatus;
+	private transient DroneStatus droneStatus;
 	private boolean enabled;
 
-	private Server server;
+	private transient Server server;
 
 	private Order orderToPrepare;
 	private Ingredient ingredientToRestock;
@@ -345,9 +346,6 @@ public class Drone extends Model implements Runnable, Serializable {
 		}
 	}
 
-	public void setTask(){
-
-	}
 
 	public enum DroneStatus{
 		IDLE,

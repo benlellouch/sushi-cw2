@@ -11,6 +11,8 @@ import java.util.List;
  * You are not permitted to modify this model, but you can extend it.
  */
 public abstract class Model implements Serializable {
+
+
 	
 	protected String name;
 	private List<UpdateListener> updateListeners = new ArrayList<UpdateListener>();

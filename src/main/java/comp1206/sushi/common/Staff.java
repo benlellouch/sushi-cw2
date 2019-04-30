@@ -11,8 +11,8 @@ public class Staff extends Model implements Runnable, Serializable {
 	private String name;
 	private String status;
 	private Number fatigue;
-	private Server server;
-	private Random random = new Random();
+	private transient Server server;
+	private transient Random random = new Random();
 
 	
 	public Staff(String name, Server server) {
