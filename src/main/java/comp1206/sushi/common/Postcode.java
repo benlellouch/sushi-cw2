@@ -1,10 +1,7 @@
 package comp1206.sushi.common;
 
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -12,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Postcode extends Model {
+public class Postcode extends Model implements Serializable {
 
 	private String name;
 	private Map<String,Double> latLong;
