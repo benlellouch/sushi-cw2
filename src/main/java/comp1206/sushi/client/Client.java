@@ -28,6 +28,7 @@ public class  Client extends Listener implements ClientInterface {
 	private List<UpdateListener> listeners = new ArrayList<UpdateListener>();
 	private com.esotericsoftware.kryonet.Client client;
 	private User loggedInUser;
+	private boolean loggedIn = false;
 
 
 	
@@ -148,19 +149,21 @@ public class  Client extends Listener implements ClientInterface {
             }else if(object instanceof Comms){
             	Comms orderStatusUpdate = (Comms) object;
 				System.out.println("I receive a comms object");
-            	if (orderStatusUpdate.isOrderStatusUpdate()){
-					System.out.println("The status update is correct wola");
-            		if (orderStatusUpdate.getUser().getName().equals(loggedInUser.getName())){
-						System.out.println("the users are equals");
-            			for (Order order: loggedInUser.getOrders()){
-            				if (order.getName().equals(orderStatusUpdate.getOrderString())){
+				if(loggedIn) {
+					if (orderStatusUpdate.isOrderStatusUpdate()) {
+						System.out.println("The status update is correct wola");
+						if (orderStatusUpdate.getUser().getName().equals(loggedInUser.getName())) {
+							System.out.println("the users are equals");
+							for (Order order : loggedInUser.getOrders()) {
+								if (order.getName().equals(orderStatusUpdate.getOrderString())) {
 
-            					order.setStatus(orderStatusUpdate.getOrderStatus());
-            					this.notifyUpdate();
+									order.setStatus(orderStatusUpdate.getOrderStatus());
+									this.notifyUpdate();
+								}
 							}
 						}
-					}
 
+					}
 				}
 			}
 
@@ -215,7 +218,7 @@ public class  Client extends Listener implements ClientInterface {
         catch (InterruptedException e){
 
         }
-
+		loggedIn = true;
 		return loggedInUser;
 	}
 
