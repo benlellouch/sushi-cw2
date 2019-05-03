@@ -60,7 +60,7 @@ public class Drone extends Model implements Runnable, Serializable {
 
 					synchronized (server) {
 						List<Order> orders = server.getOrders();
-						Map<Dish, Number> dishStock = server.getDishStock();
+//						Map<Dish, Number> dishStock = server.getDishStock();
 						Map<Ingredient, Number> ingredientStock = server.getIngredientStockLevels();
 						synchronized (orders) {
 							for (Order order : orders) {
@@ -73,6 +73,7 @@ public class Drone extends Model implements Runnable, Serializable {
                                         orderToPrepare = order;
 									    order.setStatus(Order.OrderStatus.BEING_DELIVERED);
                                         this.setStatus(DroneStatus.DELIVERING_ORDER);
+										System.out.println("This order has an empty dish list? : " + order.getDishes().isEmpty());
 										prepareOrder(order);
 									}
 

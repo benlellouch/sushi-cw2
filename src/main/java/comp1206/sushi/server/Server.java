@@ -167,12 +167,13 @@ public class Server extends Listener implements ServerInterface {
 
                 if (words[0].equals("ORDER")){
 
-                    Order order =null;
+                    Order order = new Order();
+
 
                     for (User cursor: this.getUsers()
                     ) {
                         if (words[1].equals(cursor.getName())) {
-                            order = this.addOrder(cursor);
+                            order = new Order(cursor);
 
                         }
 
@@ -190,11 +191,11 @@ public class Server extends Listener implements ServerInterface {
                                 } catch (ParseException e) {
                                     e.printStackTrace();
                                 }
-                                System.out.println(amountAndName[0]);
+                                System.out.println("This order was parsed " + order.getName() + " for " + order.getUser() + " with an empty dish list?" + order.getDishes().isEmpty());
                             }
                         }
                     }
-
+					this.addOrder(order);
                 }
             }
 
@@ -595,6 +596,7 @@ public class Server extends Listener implements ServerInterface {
 	    return order;
     }
 
+
 	@Override
 	public Number getRestockThreshold(Dish dish) {
 		return dish.getRestockThreshold();
@@ -732,7 +734,7 @@ public class Server extends Listener implements ServerInterface {
 			e.printStackTrace();
 		}
 
-		System.out.println("Backed up the data.");
+//		System.out.println("Backed up the data.");
 	}
 
 	public void loadBackup(){
