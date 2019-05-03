@@ -2,6 +2,7 @@ package comp1206.sushi.common;
 
 import com.sun.org.apache.xpath.internal.operations.Or;
 
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -73,6 +74,14 @@ public class Order extends Model implements Serializable {
 
 	public User getUser() {
 		return user;
+	}
+
+	private void readObject(ObjectInputStream ois) throws Exception{
+		ois.defaultReadObject();
+		if (orderStatus.equals(OrderStatus.BEING_DELIVERED)) {
+			this.setStatus(OrderStatus.COMPLETED);
+		}
+
 	}
 
 	public enum OrderStatus{

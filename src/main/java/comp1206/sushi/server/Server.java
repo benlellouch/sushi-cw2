@@ -747,30 +747,47 @@ public class Server extends Listener implements ServerInterface {
 			System.out.println("Persistence found, loading...");
 
 			DataPersistence backup = (DataPersistence) ois.readObject();
+			System.out.println("read object");
 			this.restaurant = backup.getRestaurant();
+			System.out.println("got restaurant");
 			this.postcodes = backup.getPostcodes();
+			System.out.println("got postcodes");
 			this.suppliers = backup.getSuppliers();
+			System.out.println("get suppliers");
 			this.ingredients = backup.getIngredients();
+			System.out.println("got ingredients");
 			this.dishes = backup.getDishes();
+			System.out.println("got dishes");
 			this.users = backup.getUsers();
+			System.out.println("got users");
 			this.orders = backup.getOrders();
+			System.out.println("got orders");
 			this.ingredientStock = backup.getIngredientStock();
+			System.out.println("got ingredient stock");
 			this.dishStock = backup.getDishStock();
+			System.out.println("got dish stock");
 
 			this.drones = backup.getDrones();
+			System.out.println("got drones");
 			this.staff = backup.getStaff();
+			System.out.println("got Staff");
 
 			for(Drone d : drones) {
+				d.setServer(this);
 				Thread newWorker = new Thread(d);
 				newWorker.start();
 			}
+			System.out.println("started drones");
 			for(Staff s : staff) {
+				s.setServer(this);
 				Thread newWorker = new Thread(s);
 				newWorker.start();
 			}
+			System.out.println("started staff");
 			this.notifyUpdate();
 		} catch(Exception e) {
 			System.out.println("Persistence error - loading default configuration");
+			e.printStackTrace();
 
 		}
 

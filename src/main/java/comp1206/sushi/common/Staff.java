@@ -2,6 +2,7 @@ package comp1206.sushi.common;
 
 import comp1206.sushi.server.Server;
 
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Random;
@@ -12,7 +13,7 @@ public class Staff extends Model implements Runnable, Serializable {
 	private String status;
 	private Number fatigue;
 	private transient Server server;
-	private transient Random random = new Random();
+	private  Random random = new Random();
 
 	
 	public Staff(String name, Server server) {
@@ -43,8 +44,8 @@ public class Staff extends Model implements Runnable, Serializable {
                 }
             }
             try {
-                int randomsleep = random.nextInt(100);
-                Thread.sleep(randomsleep);
+                int randomSleep = random.nextInt(100);
+                Thread.sleep(randomSleep);
             }catch (InterruptedException e){
                 System.out.println("Oof");
             }
@@ -138,5 +139,14 @@ public class Staff extends Model implements Runnable, Serializable {
 		notifyUpdate("status",this.status,status);
 		this.status = status;
 	}
+
+	private void readObject(ObjectInputStream ois) throws Exception{
+	    ois.defaultReadObject();
+	    this.setStatus("Idle");
+    }
+
+    public void setServer(Server server){
+	    this.server=server;
+    }
 
 }

@@ -3,6 +3,7 @@ package comp1206.sushi.common;
 import comp1206.sushi.common.Drone;
 import comp1206.sushi.server.Server;
 
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -357,7 +358,18 @@ public class Drone extends Model implements Runnable, Serializable {
 
 	}
 
+	private void readObject(ObjectInputStream ois) throws Exception{
+		ois.defaultReadObject();
+		this.setSource(null);
+		this.setDestination(null);
+		this.setStatus(DroneStatus.IDLE);
+	}
+
 	public DroneStatus getDroneStatus() {
 		return droneStatus;
+	}
+
+	public void setServer(Server server){
+		this.server = server;
 	}
 }
