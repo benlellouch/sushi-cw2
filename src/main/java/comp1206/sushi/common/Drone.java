@@ -59,6 +59,11 @@ public class Drone extends Model implements Runnable, Serializable {
 
 				if (droneStatus == DroneStatus.IDLE) {
 
+					if (battery.intValue() == 0){
+						recharge();
+						this.setStatus(DroneStatus.IDLE);
+					}
+
 					synchronized (server) {
 						List<Order> orders = server.getOrders();
 //						Map<Dish, Number> dishStock = server.getDishStock();
@@ -186,12 +191,32 @@ public class Drone extends Model implements Runnable, Serializable {
 
 
     public void goToDestination(){
+		DroneStatus statusBeforeCharging = this.getDroneStatus();
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
 
         }
 
+		if(battery.intValue() == 0){
+
+			this.setDestination(server.getRestaurantPostcode());
+			this.setSource(new Postcode("In the middle of nowhere"));
+
+			while( distanceToRestaurant > 0){
+
+				goToRestaurant();
+
+			}
+			recharge();
+			this.setStatus(statusBeforeCharging);
+
+		}
+		Number newBattery = battery.intValue() - 2;
+		if (newBattery.intValue() <0){
+			newBattery = 0;
+		}
+		battery = newBattery;
         distanceToDestination -= this.getSpeed().floatValue() * (1 / 1000d);
         distanceToRestaurant += this.getSpeed().floatValue() * (1 / 1000d);
         setProgress((int)((distanceToRestaurant/destinationRestaurantDistance)*100));
@@ -204,11 +229,34 @@ public class Drone extends Model implements Runnable, Serializable {
 
         }
 
+		Number newBattery = battery.intValue() - 2;
+		if (newBattery.intValue() <0){
+			newBattery = 0;
+		}
+		battery = newBattery;
+
         distanceToDestination += this.getSpeed().floatValue() * (1 / 1000d);
         distanceToRestaurant -= this.getSpeed().floatValue() * (1 / 1000d);
         setProgress((int)((distanceToDestination/destinationRestaurantDistance)*100));
 
     }
+
+    public void recharge(){
+		this.setStatus(DroneStatus.CHARGING);
+		while (battery.intValue() < 100){
+			while(battery.intValue()<100) {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException ie) {
+
+				}
+				battery=battery.intValue()+10;
+				if(battery.intValue()>100) {
+					battery=100;
+				}
+			}
+		}
+	}
 
 
     public  void restockIngredients(Ingredient ingredient){
@@ -345,6 +393,10 @@ public class Drone extends Model implements Runnable, Serializable {
 			notifyUpdate("status", this.status, returningOrder );
 			server.updateClientOrderStatus(orderToPrepare);
 			this.status = returningOrder;
+		}else if (status == DroneStatus.CHARGING){
+			String charging = "Charging";
+			notifyUpdate("status", this.status, charging);
+			this.status = charging;
 		}
 	}
 
@@ -355,6 +407,7 @@ public class Drone extends Model implements Runnable, Serializable {
 		RETURNING_INGREDIENTS,
 		DELIVERING_ORDER,
 		RETURNING_ORDER,
+		CHARGING,
 
 	}
 
