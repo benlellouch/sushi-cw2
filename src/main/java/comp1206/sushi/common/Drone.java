@@ -201,7 +201,8 @@ public class Drone extends Model implements Runnable, Serializable {
 		if(battery.intValue() == 0){
 
 			this.setDestination(server.getRestaurantPostcode());
-			this.setSource(new Postcode("In the middle of nowhere"));
+			this.setSource(new Postcode(""));
+			this.setProgress(0);
 
 			while( distanceToRestaurant > 0){
 
@@ -212,7 +213,7 @@ public class Drone extends Model implements Runnable, Serializable {
 			this.setStatus(statusBeforeCharging);
 
 		}
-		Number newBattery = battery.intValue() - 2;
+		Number newBattery = battery.intValue() - 1;
 		if (newBattery.intValue() <0){
 			newBattery = 0;
 		}
@@ -229,7 +230,7 @@ public class Drone extends Model implements Runnable, Serializable {
 
         }
 
-		Number newBattery = battery.intValue() - 2;
+		Number newBattery = battery.intValue() - 1;
 		if (newBattery.intValue() <0){
 			newBattery = 0;
 		}
@@ -243,7 +244,6 @@ public class Drone extends Model implements Runnable, Serializable {
 
     public void recharge(){
 		this.setStatus(DroneStatus.CHARGING);
-		while (battery.intValue() < 100){
 			while(battery.intValue()<100) {
 				try {
 					Thread.sleep(1000);
@@ -255,7 +255,7 @@ public class Drone extends Model implements Runnable, Serializable {
 					battery=100;
 				}
 			}
-		}
+
 	}
 
 

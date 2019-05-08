@@ -31,18 +31,20 @@ public class Server extends Listener implements ServerInterface {
 	public List<User> users = new CopyOnWriteArrayList<>();
 	public List<Postcode> postcodes = new CopyOnWriteArrayList<>();
 	private List<UpdateListener> listeners = new CopyOnWriteArrayList<>();
-	private Map<Ingredient, Number> ingredientStock = new ConcurrentHashMap<>();
-	private Map<Dish, Number> dishStock = new ConcurrentHashMap<>();
+
 	private List<Dish> dishBeingMade = new CopyOnWriteArrayList<>();
+	private Stock stock;
 	private com.esotericsoftware.kryonet.Server server;
 
 
 
 
 	public Server() {
+
         logger.info("Starting up server...");
         Postcode postcode = new Postcode("SO17 1BX");
         restaurant = new Restaurant("Southampton Sushi", postcode);
+        stock = new Stock();
 //        this.loadConfiguration("Configuration.txt");
 //		Configuration configuration = new Configuration("src/main/java/comp1206/sushi/Configuration.txt", this);
 
@@ -278,7 +280,7 @@ public class Server extends Listener implements ServerInterface {
 //			levels.put(dish,random.nextInt(50));
 //		}
 //		return levels;
-		return dishStock;
+		return stock.getDishStock();
 	}
 	
 	@Override
@@ -293,12 +295,12 @@ public class Server extends Listener implements ServerInterface {
 	
 	@Override
 	public void setStock(Dish dish, Number stock) {
-		dishStock.put(dish, stock);
+		this.stock.getDishStock().put(dish,stock);
 	}
 
 	@Override
 	public void setStock(Ingredient ingredient, Number stock) {
-		ingredientStock.put(ingredient,stock);
+		this.stock.getIngredientStock().put(ingredient,stock);
 	}
 
 	@Override
@@ -423,7 +425,7 @@ public class Server extends Listener implements ServerInterface {
 //			levels.put(ingredient,random.nextInt(50));
 //		}
 //		return levels;
-		return ingredientStock;
+		return stock.getIngredientStock();
 	}
 
 	@Override
@@ -506,8 +508,8 @@ public class Server extends Listener implements ServerInterface {
         orders.clear();
         users.clear();
         staff.clear();
-        ingredientStock.clear();
-        dishStock.clear();
+        stock.getIngredientStock().clear();
+        stock.getDishStock().clear();
         suppliers.clear();
         postcodes.clear();
         dishBeingMade.clear();
@@ -695,10 +697,10 @@ public class Server extends Listener implements ServerInterface {
     }
 
 	public Map<Dish, Number> getDishStock() {
-		return dishStock;
+		return stock.getDishStock();
 	}
 	public void setDishStock(Dish dish, Number number){
-		this.dishStock.put(dish, number);
+		this.stock.getDishStock().put(dish, number);
 		this.notifyUpdate();
 	}
 
@@ -762,9 +764,9 @@ public class Server extends Listener implements ServerInterface {
 			System.out.println("got users");
 			this.orders = backup.getOrders();
 			System.out.println("got orders");
-			this.ingredientStock = backup.getIngredientStock();
+			this.stock.setIngredientStock(backup.getIngredientStock());
 			System.out.println("got ingredient stock");
-			this.dishStock = backup.getDishStock();
+			this.stock.setDishStock(backup.getDishStock());
 			System.out.println("got dish stock");
 
 			this.drones = backup.getDrones();

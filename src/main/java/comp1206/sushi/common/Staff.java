@@ -35,13 +35,16 @@ public class Staff extends Model implements Runnable, Serializable {
         while (true) {
             Map<Dish, Number> dishStock = server.getDishStockLevels();
             if (this.fatigue.intValue() >= 100){
-                try{
-                    this.setStatus("Taking a break");
-                    Thread.sleep(60000);
-                    this.setFatigue(0);
-                }catch (InterruptedException e){
-
-                }
+                fatigue = 100;
+                recharge();
+                setStatus("Idle");
+//                try{
+//                    this.setStatus("Taking a break");
+//                    Thread.sleep(60000);
+//                    this.setFatigue(0);
+//                }catch (InterruptedException e){
+//
+//                }
             }
             try {
                 int randomSleep = random.nextInt(100);
@@ -70,6 +73,22 @@ public class Staff extends Model implements Runnable, Serializable {
         }
 
 	}
+
+
+	public void recharge(){
+	    this.setStatus("Taking a break");
+	    while(fatigue.intValue() > 0){
+	        try{
+	            Thread.sleep(1000);
+            }catch (InterruptedException e){
+
+            }
+	        fatigue=fatigue.intValue()-10;
+	        if(fatigue.intValue()<0){
+	            fatigue = 0;
+            }
+        }
+    }
 
 
 

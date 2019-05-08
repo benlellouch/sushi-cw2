@@ -191,6 +191,7 @@ public class  Client extends Listener implements ClientInterface {
         registerRequest.setInitClientRequest(true);
         loggedInUser = newUser;
         client.sendTCP(registerRequest);
+        loggedIn=true;
 
 
 	    return loggedInUser;

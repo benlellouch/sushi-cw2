@@ -93,4 +93,6 @@ public class Comms {
     public void setOrderStatusUpdate(boolean orderStatusUpdate) {
         this.orderStatusUpdate = orderStatusUpdate;
     }
+
+    public void receiveMessage(){}
 }
