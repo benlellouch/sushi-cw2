@@ -602,7 +602,7 @@ public class Server implements ServerInterface  {
 			this.notifyUpdate();
 		} catch(Exception e) {
 			System.out.println("Persistence error - loading default configuration");
-			e.printStackTrace();
+//			e.printStackTrace();
 
 		}
 
