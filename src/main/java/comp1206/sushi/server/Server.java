@@ -1,8 +1,6 @@
 package comp1206.sushi.server;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.Listener;
+
 import comp1206.sushi.Configuration;
 import comp1206.sushi.DataPersistence;
 import comp1206.sushi.common.*;
@@ -10,13 +8,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class Server implements ServerInterface {
+public class Server implements ServerInterface  {
 
     private static final Logger logger = LogManager.getLogger("Server");
 	
@@ -33,6 +29,8 @@ public class Server implements ServerInterface {
 	private Comms server;
 	private List<Dish> dishBeingMade = new CopyOnWriteArrayList<>();
 	private Stock stock;
+	private volatile boolean ingredientRestocking = true;
+	private volatile boolean dishRestocking = true;
 
 
 
@@ -44,6 +42,7 @@ public class Server implements ServerInterface {
         Postcode postcode = new Postcode("SO17 1BX");
         restaurant = new Restaurant("Southampton Sushi", postcode);
         stock = new Stock();
+        loadBackup();
 	}
 
 
@@ -63,7 +62,14 @@ public class Server implements ServerInterface {
 	}
 	
 	@Override
-	public void removeDish(Dish dish) {
+	public void removeDish(Dish dish) throws UnableToDeleteException {
+		for (Order order: orders){
+			for (Dish cursor : order.getDishes().keySet()){
+				if (cursor.equals(dish)){
+					throw new UnableToDeleteException("");
+				}
+			}
+		}
 		this.dishes.remove(dish);
 		server.sendDish(dish);
 		this.notifyUpdate();
@@ -71,26 +77,28 @@ public class Server implements ServerInterface {
 
 	@Override
 	public Map<Dish, Number> getDishStockLevels() {
-//		Random random = new Random();
-//		List<Dish> dishes = getDishes();
-//		HashMap<Dish, Number> levels = new HashMap<Dish, Number>();
-//		for(Dish dish : dishes) {
-//			levels.put(dish,random.nextInt(50));
-//		}
-//		return levels;
+
 		return stock.getDishStock();
 	}
 	
 	@Override
 	public void setRestockingIngredientsEnabled(boolean enabled) {
-		
+		ingredientRestocking = enabled;
 	}
 
 	@Override
 	public void setRestockingDishesEnabled(boolean enabled) {
-		
+		dishRestocking = enabled;
 	}
-	
+
+	public boolean isDishRestocking() {
+		return dishRestocking;
+	}
+
+	public boolean isIngredientRestocking() {
+		return ingredientRestocking;
+	}
+
 	@Override
 	public void setStock(Dish dish, Number stock) {
 		this.stock.getDishStock().put(dish,stock);
@@ -117,7 +125,14 @@ public class Server implements ServerInterface {
 	}
 
 	@Override
-	public void removeIngredient(Ingredient ingredient) {
+	public void removeIngredient(Ingredient ingredient) throws UnableToDeleteException{
+		for (Dish dish: dishes){
+			for (Ingredient cursor : dish.getRecipe().keySet()){
+				if (cursor.equals(ingredient)){
+					throw new UnableToDeleteException("");
+				}
+			}
+		}
 		int index = this.ingredients.indexOf(ingredient);
 		this.ingredients.remove(index);
 		this.notifyUpdate();
@@ -137,7 +152,12 @@ public class Server implements ServerInterface {
 
 
 	@Override
-	public void removeSupplier(Supplier supplier) {
+	public void removeSupplier(Supplier supplier) throws UnableToDeleteException {
+		for (Ingredient ingredient : ingredients){
+			if (ingredient.getSupplier().equals(supplier)){
+				throw new UnableToDeleteException("");
+			}
+		}
 		int index = this.suppliers.indexOf(supplier);
 		this.suppliers.remove(index);
 		this.notifyUpdate();
@@ -159,7 +179,10 @@ public class Server implements ServerInterface {
 	}
 
 	@Override
-	public void removeDrone(Drone drone) {
+	public void removeDrone(Drone drone) throws UnableToDeleteException {
+		if(!(drone.getDroneStatus().equals(Drone.DroneStatus.IDLE))){
+			throw new UnableToDeleteException("");
+		}
 		int index = this.drones.indexOf(drone);
 		this.drones.remove(index);
 		this.notifyUpdate();
@@ -181,7 +204,10 @@ public class Server implements ServerInterface {
 	}
 
 	@Override
-	public void removeStaff(Staff staff) {
+	public void removeStaff(Staff staff) throws UnableToDeleteException{
+		if (!(staff.getStatus().equals("Idle"))){
+			throw new UnableToDeleteException("");
+		}
 		this.staff.remove(staff);
 		this.notifyUpdate();
 	}
@@ -282,6 +308,16 @@ public class Server implements ServerInterface {
 
 	@Override
 	public void removePostcode(Postcode postcode) throws UnableToDeleteException {
+		for (Supplier supplier : suppliers){
+			if(supplier.getPostcode().equals(postcode)){
+				throw new UnableToDeleteException("");
+			}
+		}
+		for (User user : users){
+			if(user.getPostcode().equals(postcode)){
+				throw new UnableToDeleteException("");
+			}
+		}
 		this.postcodes.remove(postcode);
 		this.notifyUpdate();
 	}
@@ -292,7 +328,12 @@ public class Server implements ServerInterface {
 	}
 	
 	@Override
-	public void removeUser(User user) {
+	public void removeUser(User user) throws UnableToDeleteException{
+		for(Order order:orders){
+			if(order.getUser().equals(user)){
+				throw new UnableToDeleteException("");
+			}
+		}
 		this.users.remove(user);
 		this.notifyUpdate();
 	}
@@ -311,33 +352,8 @@ public class Server implements ServerInterface {
         suppliers.clear();
         postcodes.clear();
         dishBeingMade.clear();
-        if(filename.contains(".txt")) {
-			Configuration configuration = new Configuration(filename, this);
-//			try {
-//				File inFile = new File("SerialOutput.txt");
-//				FileInputStream fis = new FileInputStream(inFile);
-//				ObjectInputStream ois = new ObjectInputStream(fis);
-//				this.postcodes = (CopyOnWriteArrayList<Postcode>) ois.readObject();
-//				this.restaurant = (Restaurant) ois.readObject();
-//				this.staff = (CopyOnWriteArrayList<Staff>) ois.readObject();
-//				System.out.println("I do get here");
-//				for (Staff cursor: staff
-//				) {
-//
-//					System.out.println(cursor.getName());
-//
-//				}
-//
-//
-//
-//			}catch (IOException e){
-//				e.printStackTrace();
-//			} catch (ClassNotFoundException e){
-//				e.printStackTrace();
-//			}
-		}else if(filename.contains(".data")){
-			loadBackup();
-		}
+
+        Configuration configuration = new Configuration(filename, this);
 
         this.notifyUpdate();
 

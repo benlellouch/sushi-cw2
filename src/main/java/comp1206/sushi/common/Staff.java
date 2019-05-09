@@ -52,6 +52,7 @@ public class Staff extends Model implements Runnable, Serializable {
             }catch (InterruptedException e){
                 System.out.println("Oof");
             }
+            if(server.isDishRestocking()) {
                 synchronized (this) {
                     for (Map.Entry<Dish, Number> dishNumberEntry : dishStock.entrySet()) {
                         synchronized (this) {
@@ -70,6 +71,7 @@ public class Staff extends Model implements Runnable, Serializable {
 
                     }
                 }
+            }
         }
 
 	}

@@ -88,28 +88,29 @@ public class Drone extends Model implements Runnable, Serializable {
 
 						}
 
+						if(server.isIngredientRestocking()) {
+							if (droneStatus == DroneStatus.IDLE) {
+								for (Map.Entry<Ingredient, Number> cursor : ingredientStock.entrySet()) {
 
-                        if(droneStatus == DroneStatus.IDLE) {
-                            for (Map.Entry<Ingredient, Number> cursor : ingredientStock.entrySet()) {
+									if (cursor.getKey().getStatus() != Ingredient.IngredientStatus.BEING_RESTOCKED) {
 
-                                if (cursor.getKey().getStatus() != Ingredient.IngredientStatus.BEING_RESTOCKED) {
+										if (cursor.getValue().intValue() < server.getRestockThreshold(cursor.getKey()).intValue()) {
+											ingredientToRestock = cursor.getKey();
+											ingredientToRestock.setStatus(Ingredient.IngredientStatus.BEING_RESTOCKED);
+											System.out.println(this.speed + " " + ingredientToRestock.getName() + " " + ingredientToRestock.getStatus());
+											distanceToDestination = cursor.getKey().getSupplier().getDistance().floatValue();
+											destinationRestaurantDistance = distanceToDestination;
+											distanceToRestaurant = 0;
+											this.setStatus(DroneStatus.COLLECTING_INGREDIENTS);
+											setDestination(ingredientToRestock.getSupplier().getPostcode());
+											setSource(server.getRestaurantPostcode());
+											break;
+										}
+									}
 
-                                    if (cursor.getValue().intValue() < server.getRestockThreshold(cursor.getKey()).intValue()) {
-                                        ingredientToRestock = cursor.getKey();
-                                        ingredientToRestock.setStatus(Ingredient.IngredientStatus.BEING_RESTOCKED);
-                                        System.out.println(this.speed + " " + ingredientToRestock.getName() + " " + ingredientToRestock.getStatus());
-                                        distanceToDestination = cursor.getKey().getSupplier().getDistance().floatValue();
-                                        destinationRestaurantDistance = distanceToDestination;
-                                        distanceToRestaurant = 0;
-                                        this.setStatus(DroneStatus.COLLECTING_INGREDIENTS);
-                                        setDestination(ingredientToRestock.getSupplier().getPostcode());
-                                        setSource(server.getRestaurantPostcode());
-                                        break;
-                                    }
-                                }
-
-                            }
-                        }
+								}
+							}
+						}
 
 
 
@@ -173,21 +174,6 @@ public class Drone extends Model implements Runnable, Serializable {
 
 	}
 
-//	public synchronized Order checkForOrders(){
-//
-//		List<Order> orders = server.getOrders();
-//		for (Order order: orders) {
-//
-//			if (order.getOrderStatus() == Order.OrderStatus.BEING_PREPARED){
-//
-//				checkDishStock(order);
-//				return order;
-//			}
-//
-//		}
-//
-//		return null;
-//	}
 
 
     public void goToDestination(){
