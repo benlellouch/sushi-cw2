@@ -3,7 +3,7 @@ package comp1206.sushi.common;
 import java.util.Map;
 
 // this class is used as request message for the client
-public class Comms {
+public class RequestPacket {
 
 
     private boolean initClientRequest;
@@ -16,33 +16,37 @@ public class Comms {
     private String orderString;
     private Order.OrderStatus orderStatus;
 
-    public Comms (User user, Map<String, Number> orderDishes){
+    public RequestPacket(User user, Map<String, Number> orderDishes){
         this.initClientRequest = false;
         this.loginRequest = false;
         this.orderRequest=false;
+        this.orderStatusUpdate = false;
         this.user = user;
         this.orderDishes = orderDishes;
     }
-    public Comms(User user){
+    public RequestPacket(User user){
         this.initClientRequest = false;
         this.loginRequest = false;
         this.orderRequest=false;
+        this.orderStatusUpdate = false;
         this.user = user;
     }
 
-    public Comms(String string){
+    public RequestPacket(String string){
         this.initClientRequest = false;
         this.loginRequest = false;
         this.orderRequest=false;
+        this.orderStatusUpdate = false;
         this.orderString = string;
     }
 
-    public Comms(){}
+    public RequestPacket(){}
 
-    public Comms(String orderName, User orderUser, Order.OrderStatus orderStatus ){
+    public RequestPacket(String orderName, User orderUser, Order.OrderStatus orderStatus ){
         this.initClientRequest = false;
         this.loginRequest = false;
         this.orderRequest=false;
+        this.orderStatusUpdate = false;
         this.orderString = orderName;
         this.user = orderUser;
         this.orderStatus = orderStatus;

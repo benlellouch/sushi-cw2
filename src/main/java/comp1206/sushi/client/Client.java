@@ -53,7 +53,7 @@ public class  Client extends Listener implements ClientInterface {
 //		}
 //
 //		Kryo kryo = client.getKryo();
-//		kryo.register(Comms.class);
+//		kryo.register(RequestPacket.class);
 //		kryo.register(Dish.class);
 //        kryo.register(java.util.HashMap.class);
 //        kryo.register(java.util.ArrayList.class);
@@ -148,8 +148,8 @@ public class  Client extends Listener implements ClientInterface {
 //			}else if(object instanceof  Postcode){
 //                Postcode postcode = (Postcode) object;
 //                this.addPostcode(postcode);
-//            }else if(object instanceof Comms){
-//            	Comms orderStatusUpdate = (Comms) object;
+//            }else if(object instanceof RequestPacket){
+//            	RequestPacket orderStatusUpdate = (RequestPacket) object;
 //				System.out.println("I receive a comms object");
 //				if(loggedIn) {
 //					if (orderStatusUpdate.isOrderStatusUpdate()) {
@@ -195,7 +195,7 @@ public class  Client extends Listener implements ClientInterface {
 	    User newUser = new User(username,password,address,postcode);
 	    client.registerUser(newUser);
 
-//        Comms registerRequest = new Comms(newUser);
+//        RequestPacket registerRequest = new RequestPacket(newUser);
 //        registerRequest.setInitClientRequest(true);
         loggedInUser = newUser;
 //        client.sendTCP(registerRequest);
@@ -210,7 +210,7 @@ public class  Client extends Listener implements ClientInterface {
 	    Postcode uselessPostcode = new Postcode("SO17 1BX", restaurant);
 	    User tempLoginUser = new User(username, password, "useless", uselessPostcode);
 	    client.requestLogin(tempLoginUser);
-//	    Comms loginRequest = new Comms(tempLoginUser);
+//	    RequestPacket loginRequest = new RequestPacket(tempLoginUser);
 //	    loginRequest.setLoginRequest(true);
 //        System.out.println(loginRequest.isLoginRequest());
 //        System.out.println(loginRequest.getUser().getName());

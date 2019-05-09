@@ -29,7 +29,7 @@ ORDER:Admin:2 * Sushi Roll
 ORDER:Ahmed:3 * Side Rice
 
 
-STOCK:Rice:50000
+STOCK:Rice:5000
 STOCK:Vinegar:5000
 STOCK:Avocado:50000
 STOCK:Salt:5000

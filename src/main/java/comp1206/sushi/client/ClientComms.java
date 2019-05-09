@@ -4,7 +4,6 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import comp1206.sushi.common.*;
-import comp1206.sushi.server.Server;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ public class ClientComms extends Listener {
         }
 
         Kryo kryo = kryoClient.getKryo();
-        kryo.register(Comms.class);
+        kryo.register(RequestPacket.class);
         kryo.register(Dish.class);
         kryo.register(HashMap.class);
         kryo.register(ArrayList.class);
@@ -87,7 +86,7 @@ public class ClientComms extends Listener {
             client.setLoggedInUser((User) object);
         } else if (object instanceof String) {
             String string = (String) object;
-            System.out.println(object);
+            System.out.println(string);
 
         } else if (object instanceof Order) {
             boolean removed = false;
@@ -126,8 +125,8 @@ public class ClientComms extends Listener {
         }else if(object instanceof  Postcode){
             Postcode postcode = (Postcode) object;
             client.addPostcode(postcode);
-        }else if(object instanceof Comms){
-            Comms orderStatusUpdate = (Comms) object;
+        }else if(object instanceof RequestPacket){
+            RequestPacket orderStatusUpdate = (RequestPacket) object;
             System.out.println("I receive a comms object");
             if(client.isLoggedIn()) {
                 if (orderStatusUpdate.isOrderStatusUpdate()) {
@@ -150,13 +149,13 @@ public class ClientComms extends Listener {
     }
 
     public void requestLogin(User user){
-        Comms loginRequest = new Comms(user);
+        RequestPacket loginRequest = new RequestPacket(user);
         loginRequest.setLoginRequest(true);
         kryoClient.sendTCP(loginRequest);
     }
 
     public void registerUser(User user){
-        Comms registerRequest = new Comms(user);
+        RequestPacket registerRequest = new RequestPacket(user);
         registerRequest.setInitClientRequest(true);
         kryoClient.sendTCP(registerRequest);
     }
@@ -167,7 +166,7 @@ public class ClientComms extends Listener {
         for(Map.Entry<Dish, Number> cursor : basket.entrySet()){
             orderString.append(cursor.getValue()+" * "+cursor.getKey()+ ",");
         }
-        Comms orderRequest = new Comms(orderString.toString());
+        RequestPacket orderRequest = new RequestPacket(orderString.toString());
         orderRequest.setOrderRequest(true);
         kryoClient.sendTCP(orderRequest);
     }

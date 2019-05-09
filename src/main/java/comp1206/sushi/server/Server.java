@@ -14,10 +14,9 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class Server extends Listener implements ServerInterface {
+public class Server implements ServerInterface {
 
     private static final Logger logger = LogManager.getLogger("Server");
 	
@@ -31,219 +30,22 @@ public class Server extends Listener implements ServerInterface {
 	public List<User> users = new CopyOnWriteArrayList<>();
 	public List<Postcode> postcodes = new CopyOnWriteArrayList<>();
 	private List<UpdateListener> listeners = new CopyOnWriteArrayList<>();
-
+	private Comms server;
 	private List<Dish> dishBeingMade = new CopyOnWriteArrayList<>();
 	private Stock stock;
-	private com.esotericsoftware.kryonet.Server server;
+
 
 
 
 
 	public Server() {
-
+		server = new Comms(this);
         logger.info("Starting up server...");
         Postcode postcode = new Postcode("SO17 1BX");
         restaurant = new Restaurant("Southampton Sushi", postcode);
         stock = new Stock();
-//        this.loadConfiguration("Configuration.txt");
-//		Configuration configuration = new Configuration("src/main/java/comp1206/sushi/Configuration.txt", this);
-
-
-
-        //creation of the comms server
-		try {
-			server = new com.esotericsoftware.kryonet.Server();
-			synchronized (this){server.start();}
-			server.bind(54555, 54777);
-		}catch (IOException e){
-			e.printStackTrace();
-		}
-        Kryo kryo = server.getKryo();
-		kryo.register(Comms.class);
-        kryo.register(Dish.class);
-        kryo.register(java.util.HashMap.class);
-        kryo.register(java.util.ArrayList.class);
-        kryo.register(Ingredient.class);
-        kryo.register(Supplier.class);
-        kryo.register(Postcode.class);
-        kryo.register(Restaurant.class);
-        kryo.register(Order.class);
-		kryo.register(java.util.concurrent.CopyOnWriteArrayList.class);
-        kryo.register(User.class);
-        kryo.register(Order.OrderStatus.class);
-		kryo.register(Ingredient.IngredientStatus.class);
-        server.addListener(this);
-
-
-//		Postcode restaurantPostcode = new Postcode("SO17 1BJ");
-//		restaurant = new Restaurant("Southampton Sushi",restaurantPostcode);
-//
-////
-////
-////
-////
-////		Postcode postcode1 = addPostcode("SO17 1TJ");
-////		Postcode postcode2 = addPostcode("SO17 1BX");
-////		Postcode postcode3 = addPostcode("SO17 2NJ");
-////		Postcode postcode4 = addPostcode("SO17 1TW");
-////		Postcode postcode5 = addPostcode("SO17 2LB");
-////
-////		Supplier supplier1 = addSupplier("Supplier 1",postcode1);
-////		Supplier supplier2 = addSupplier("Supplier 2",postcode2);
-////		Supplier supplier3 = addSupplier("Supplier 3",postcode3);
-////
-////		Ingredient ingredient1 = addIngredient("Ingredient 1","grams",supplier1,1,5,1);
-////		Ingredient ingredient2 = addIngredient("Ingredient 2","grams",supplier2,1,5,1);
-////		Ingredient ingredient3 = addIngredient("Ingredient 3","grams",supplier3,1,5,1);
-////
-//		Dish dish1 = addDish("Dish 1","Dish 1",1,1,10);
-////		Dish dish2 = addDish("Dish 2","Dish 2",2,1,10);
-////		Dish dish3 = addDish("Dish 3","Dish 3",3,1,10);
-////
-//////		orders.add(new Order());
-////
-////		addIngredientToDish(dish1,ingredient1,1);
-////		addIngredientToDish(dish1,ingredient2,2);
-////		addIngredientToDish(dish2,ingredient2,3);
-////		addIngredientToDish(dish2,ingredient3,1);
-////		addIngredientToDish(dish3,ingredient1,2);
-////		addIngredientToDish(dish3,ingredient3,1);
-////
-////		addStaff("Staff 1");
-////		addStaff("Staff 2");
-////		addStaff("Staff 3");
-////
-////		addDrone(1);
-////		addDrone(2);
-////		addDrone(3);
-////
-//        Postcode newPostcode = new Postcode("SO17 1BX", restaurant);
-//        User user = new User("User", "Password", "Lol", newPostcode);
-//        Order order = new Order(user);
-//        orders.add(order);
-//        addDishtoOrder(order,dish1,3);
-
 	}
-    public void connected(Connection connection){
-        System.out.println("The connection is complete");
-        String string = "say hello to my little friend";
-        connection.sendTCP(string);
-        System.out.println("I have sent a string");
-        System.out.println(connection.getRemoteAddressTCP());
-    }
-    public void disconnected(Connection connection){
-        System.out.println("Disconnected");
-    }
-    public void received(Connection connection, Object object) {
-        if (object instanceof Comms) {
-            System.out.println("I do receive a comms object");
-            Comms request =  (Comms) object;
-            User user = request.getUser();
-            System.out.println(request);
-            System.out.println(request.isLoginRequest());
-            if (request.isInitClientRequest()) {
-                this.addUser(user);
-                initialiseClient(connection, user);
-            } else if (request.isLoginRequest()) {
-                System.out.println("I get a login request with the username:" + user.getName());
-                for (User cursor : users) {
-                    if (user.getName().equals(cursor.getName()) && user.getPassword().equals(cursor.getPassword())) {
-                        connection.sendTCP(cursor);
-                        System.out.println("I sent out the user that the client wants: " + cursor.getName());
-                        initialiseClient(connection, cursor);
-                    }
-                }
 
-            }else if (request.isOrderRequest()){
-//               Order order = new Order(user);
-//               this.addOrder(order);
-//               for (Entry<String, Number> cursor : request.getOrderDishes().entrySet()){
-//                    for (Dish dish: dishes){
-//                        if (cursor.getKey().equals(dish.getName())){
-//                            this.addDishtoOrder(order,dish, cursor.getValue());
-//                        }
-//                    }
-//               }
-               String orderString = (String) request.getOrderString();
-                String[] words = orderString.split(":");
-
-                if (words[0].equals("ORDER")){
-
-                    Order order = new Order();
-
-
-                    for (User cursor: this.getUsers()
-                    ) {
-                        if (words[1].equals(cursor.getName())) {
-                            order = new Order(cursor);
-
-                        }
-
-                    }
-                    String[] dishes = words[2].split(",");
-                    for (String dish: dishes) {
-                        String[] amountAndName = dish.split(" \\* ");
-
-                        for(Dish newDish: this.getDishes()) {
-//                            System.out.println(amountAndName[1] + " and the newDish: " + newDish.getName() +  " length of array");
-
-                            if (amountAndName[1].equals(newDish.getName())) {
-                                try {
-                                    this.addDishtoOrder(order,newDish, NumberFormat.getInstance().parse(amountAndName[0]));
-                                } catch (ParseException e) {
-                                    e.printStackTrace();
-                                }
-                                System.out.println("This order was parsed " + order.getName() + " for " + order.getUser() + " with an empty dish list?" + order.getDishes().isEmpty());
-                            }
-                        }
-                    }
-					this.addOrder(order);
-                }
-            }
-
-        } else if (object instanceof User){
-
-            User user = (User) object;
-            System.out.println(user.getName());
-        } else if (object instanceof  String){
-            String print = (String) object;
-            System.out.println(print);
-            String send = "And did you receive mine";
-            System.out.println(connection.getRemoteAddressTCP());
-            connection.sendTCP(send);
-            if(print.equals("getPostcodes")){
-                connection.sendTCP(restaurant);
-                for (Postcode postcode : postcodes){
-                    connection.sendTCP(postcode);
-                }
-            }
-        } else if (object instanceof Order){
-			System.out.println("I receive an order object");
-            Order order = (Order) object;
-			System.out.println(order.getName() + " " + order.getUser());
-            for (Order cursor :orders){
-				System.out.println(cursor.getName() + " " + cursor.getUser());
-            	if (cursor.getName().equals(order.getName()) && cursor.getUser().getName().equals(order.getUser().getName())){
-            		cancelOrder(cursor);
-					System.out.println("Removed order");
-				}
-			}
-
-        }
-    }
-
-	public synchronized void initialiseClient(Connection connection, User user){
-
-        for (Dish dish : dishes) {
-            connection.sendTCP(dish);
-        }
-        for (Order order: orders){
-            if (order.getUser().equals(user)){
-                connection.sendTCP(order);
-                System.out.println("Order sent");
-            }
-        }
-    }
 
 	@Override
 	public List<Dish> getDishes() {
@@ -256,18 +58,14 @@ public class Server extends Listener implements ServerInterface {
 		this.dishes.add(newDish);
 		this.setStock(newDish, 0);
 		this.notifyUpdate();
-		try {
-            server.sendToAllTCP(newDish);
-        }catch (NullPointerException e){
-            System.out.println("It's fine");
-        }
+		server.sendDish(newDish);
 		return newDish;
 	}
 	
 	@Override
 	public void removeDish(Dish dish) {
 		this.dishes.remove(dish);
-		server.sendToAllTCP(dish);
+		server.sendDish(dish);
 		this.notifyUpdate();
 	}
 
@@ -397,7 +195,7 @@ public class Server extends Listener implements ServerInterface {
 	public void removeOrder(Order order) {
 
 		this.orders.remove(order);
-		server.sendToAllTCP(order);
+		server.sendOrder(order);
 		this.notifyUpdate();
 	}
 
@@ -706,9 +504,8 @@ public class Server extends Listener implements ServerInterface {
 
 	public void updateClientOrderStatus(Order order){
 
-		Comms orderUpdate = new Comms(order.getName(), order.getUser(), order.getOrderStatus());
-		orderUpdate.setOrderStatusUpdate(true);
-		server.sendToAllTCP(orderUpdate);
+
+		server.updateOrder(order);
 
 	}
 
