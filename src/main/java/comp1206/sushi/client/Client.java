@@ -26,13 +26,15 @@ public class  Client extends Listener implements ClientInterface {
 //	public ArrayList<User> users = new ArrayList<User>();
 	public List<Postcode> postcodes = new ArrayList<Postcode>();
 	private List<UpdateListener> listeners = new ArrayList<UpdateListener>();
-	private com.esotericsoftware.kryonet.Client client;
+//	private com.esotericsoftware.kryonet.Client client;
+	private ClientComms client;
 	private User loggedInUser;
 	private boolean loggedIn = false;
 
 
 	
 	public Client() {
+		client = new ClientComms(this);
         logger.info("Starting up client...");
         loggedInUser = null;
 
@@ -40,138 +42,142 @@ public class  Client extends Listener implements ClientInterface {
 
 
         //creation of comms client
-		try {
-		    synchronized (this) {
-                client = new com.esotericsoftware.kryonet.Client(32768,32768);
-                client.start();
-                client.connect(5000, "127.0.0.1", 54555, 54777);
-            }
-		}catch (IOException e ){
-			System.out.println("Something wrong the client comms");
-		}
-
-		Kryo kryo = client.getKryo();
-		kryo.register(Comms.class);
-		kryo.register(Dish.class);
-        kryo.register(java.util.HashMap.class);
-        kryo.register(java.util.ArrayList.class);
-        kryo.register(Ingredient.class);
-        kryo.register(Supplier.class);
-        kryo.register(Postcode.class);
-        kryo.register(Restaurant.class);
-        kryo.register(Order.class);
-        kryo.register(java.util.concurrent.CopyOnWriteArrayList.class);
-        kryo.register(User.class);
-        kryo.register(Order.OrderStatus.class);
-        kryo.register(Ingredient.IngredientStatus.class);
-
-        String string = "getPostcodes";
-        client.sendTCP(string);
-        synchronized (this) {
-            client.addListener(this);
-        }
-        System.out.println(client.getRemoteAddressTCP());
+//		try {
+//		    synchronized (this) {
+//                client = new com.esotericsoftware.kryonet.Client(32768,32768);
+//                client.start();
+//                client.connect(5000, "127.0.0.1", 54555, 54777);
+//            }
+//		}catch (IOException e ){
+//			System.out.println("Something wrong the client comms");
+//		}
+//
+//		Kryo kryo = client.getKryo();
+//		kryo.register(Comms.class);
+//		kryo.register(Dish.class);
+//        kryo.register(java.util.HashMap.class);
+//        kryo.register(java.util.ArrayList.class);
+//        kryo.register(Ingredient.class);
+//        kryo.register(Supplier.class);
+//        kryo.register(Postcode.class);
+//        kryo.register(Restaurant.class);
+//        kryo.register(Order.class);
+//        kryo.register(java.util.concurrent.CopyOnWriteArrayList.class);
+//        kryo.register(User.class);
+//        kryo.register(Order.OrderStatus.class);
+//        kryo.register(Ingredient.IngredientStatus.class);
+//
+//        String string = "getPostcodes";
+//        client.sendTCP(string);
+//        synchronized (this) {
+//            client.addListener(this);
+//        }
+//        System.out.println(client.getRemoteAddressTCP());
 
 	}
-    public void connected(Connection connection){
-        System.out.println("The connection is complete");
-    }
-    public void disconnected(Connection connection){
-        System.out.println("Disconnected");
-    }
-    public void received (Connection connection, Object object) {
-
-            if (object instanceof Dish) {
-                Dish dishToAdd = (Dish) object;
-                boolean removed = false;
-
-                for (Dish dish: dishes) {
-                    if (dish.getName().equals(dishToAdd.getName()) && dish.getDescription().equals(dishToAdd.getDescription())) {
-                        this.removeDish(dish);
-                        System.out.println("Removed Dish");
-                        removed = true;
-                    }
-
-                }
-
-                if (!removed) {
-                    this.addDish(dishToAdd);
-                    System.out.println("Added dish");
-                }
-
-
-
-
-            } else if (object instanceof User) {
-                System.out.println("I receive the User");
-                loggedInUser = (User) object;
-            } else if (object instanceof String) {
-                String string = (String) object;
-                System.out.println(object);
-
-            } else if (object instanceof Order) {
-            	boolean removed = false;
-
-
-                Order order = (Order) object;
-                User user = loggedInUser;
-
-                if(loggedInUser.getName().equals(order.getUser().getName())){
-
-                	for (Order cursor : loggedInUser.getOrders()){
-                		if (cursor.getName().equals(order.getName()) && cursor.getUser().getName().equals(order.getUser().getName())){
-
-                			user.getOrders().remove(cursor);
-                			removed = true;
-							System.out.println("Removed order");
-                			this.notifyUpdate();
-						}
-					}
-
-                	if (!removed) {
-						System.out.println(order.getUser().getName());
-						user.getOrders().add(order);
-						this.notifyUpdate();
-						System.out.println("Added Order");
-						System.out.println(order.getUser());
-						for (Map.Entry<Dish, Number> cursor : order.getDishes().entrySet()) {
-							System.out.println(cursor.getKey() + " " + cursor.getValue());
-						}
-					}
-				}
-
-            }else if (object instanceof  Restaurant){
-            	Restaurant newRestaurant = (Restaurant) object;
-            	restaurant = newRestaurant;
-			}else if(object instanceof  Postcode){
-                Postcode postcode = (Postcode) object;
-                this.addPostcode(postcode);
-            }else if(object instanceof Comms){
-            	Comms orderStatusUpdate = (Comms) object;
-				System.out.println("I receive a comms object");
-				if(loggedIn) {
-					if (orderStatusUpdate.isOrderStatusUpdate()) {
-						System.out.println("The status update is correct wola");
-						if (orderStatusUpdate.getUser().getName().equals(loggedInUser.getName())) {
-							System.out.println("the users are equals");
-							for (Order order : loggedInUser.getOrders()) {
-								if (order.getName().equals(orderStatusUpdate.getOrderString())) {
-
-									order.setStatus(orderStatusUpdate.getOrderStatus());
-									this.notifyUpdate();
-								}
-							}
-						}
-
-					}
-				}
-			}
-
-    }
+//    public void connected(Connection connection){
+//        System.out.println("The connection is complete");
+//    }
+//    public void disconnected(Connection connection){
+//        System.out.println("Disconnected");
+//    }
+//    public void received (Connection connection, Object object) {
+//
+//            if (object instanceof Dish) {
+//                Dish dishToAdd = (Dish) object;
+//                boolean removed = false;
+//
+//                for (Dish dish: dishes) {
+//                    if (dish.getName().equals(dishToAdd.getName()) && dish.getDescription().equals(dishToAdd.getDescription())) {
+//                        this.removeDish(dish);
+//                        System.out.println("Removed Dish");
+//                        removed = true;
+//                    }
+//
+//                }
+//
+//                if (!removed) {
+//                    this.addDish(dishToAdd);
+//                    System.out.println("Added dish");
+//                }
+//
+//
+//
+//
+//            } else if (object instanceof User) {
+//                System.out.println("I receive the User");
+//                loggedInUser = (User) object;
+//            } else if (object instanceof String) {
+//                String string = (String) object;
+//                System.out.println(object);
+//
+//            } else if (object instanceof Order) {
+//            	boolean removed = false;
+//
+//
+//                Order order = (Order) object;
+//                User user = loggedInUser;
+//
+//                if(loggedInUser.getName().equals(order.getUser().getName())){
+//
+//                	for (Order cursor : loggedInUser.getOrders()){
+//                		if (cursor.getName().equals(order.getName()) && cursor.getUser().getName().equals(order.getUser().getName())){
+//
+//                			user.getOrders().remove(cursor);
+//                			removed = true;
+//							System.out.println("Removed order");
+//                			this.notifyUpdate();
+//						}
+//					}
+//
+//                	if (!removed) {
+//						System.out.println(order.getUser().getName());
+//						user.getOrders().add(order);
+//						this.notifyUpdate();
+//						System.out.println("Added Order");
+//						System.out.println(order.getUser());
+//						for (Map.Entry<Dish, Number> cursor : order.getDishes().entrySet()) {
+//							System.out.println(cursor.getKey() + " " + cursor.getValue());
+//						}
+//					}
+//				}
+//
+//            }else if (object instanceof  Restaurant){
+//            	Restaurant newRestaurant = (Restaurant) object;
+//            	restaurant = newRestaurant;
+//			}else if(object instanceof  Postcode){
+//                Postcode postcode = (Postcode) object;
+//                this.addPostcode(postcode);
+//            }else if(object instanceof Comms){
+//            	Comms orderStatusUpdate = (Comms) object;
+//				System.out.println("I receive a comms object");
+//				if(loggedIn) {
+//					if (orderStatusUpdate.isOrderStatusUpdate()) {
+//						System.out.println("The status update is correct wola");
+//						if (orderStatusUpdate.getUser().getName().equals(loggedInUser.getName())) {
+//							System.out.println("the users are equals");
+//							for (Order order : loggedInUser.getOrders()) {
+//								if (order.getName().equals(orderStatusUpdate.getOrderString())) {
+//
+//									order.setStatus(orderStatusUpdate.getOrderStatus());
+//									this.notifyUpdate();
+//								}
+//							}
+//						}
+//
+//					}
+//				}
+//			}
+//
+//    }
 	
 	@Override
 	public Restaurant getRestaurant() {
 		return restaurant;
+	}
+
+	public void setRestaurant(Restaurant restaurant){
+		this.restaurant = restaurant;
 	}
 	
 	@Override
@@ -187,10 +193,12 @@ public class  Client extends Listener implements ClientInterface {
 	@Override
 	public User register(String username, String password, String address, Postcode postcode) {
 	    User newUser = new User(username,password,address,postcode);
-        Comms registerRequest = new Comms(newUser);
-        registerRequest.setInitClientRequest(true);
+	    client.registerUser(newUser);
+
+//        Comms registerRequest = new Comms(newUser);
+//        registerRequest.setInitClientRequest(true);
         loggedInUser = newUser;
-        client.sendTCP(registerRequest);
+//        client.sendTCP(registerRequest);
         loggedIn=true;
 
 
@@ -201,14 +209,15 @@ public class  Client extends Listener implements ClientInterface {
 	public User login(String username, String password) {
 	    Postcode uselessPostcode = new Postcode("SO17 1BX", restaurant);
 	    User tempLoginUser = new User(username, password, "useless", uselessPostcode);
-	    Comms loginRequest = new Comms(tempLoginUser);
-	    loginRequest.setLoginRequest(true);
-        System.out.println(loginRequest.isLoginRequest());
-        System.out.println(loginRequest.getUser().getName());
-        System.out.println(loginRequest);
+	    client.requestLogin(tempLoginUser);
+//	    Comms loginRequest = new Comms(tempLoginUser);
+//	    loginRequest.setLoginRequest(true);
+//        System.out.println(loginRequest.isLoginRequest());
+//        System.out.println(loginRequest.getUser().getName());
+//        System.out.println(loginRequest);
+////	    client.sendTCP(loginRequest);
+//        String test = "login test";
 //	    client.sendTCP(loginRequest);
-        String test = "login test";
-	    client.sendTCP(loginRequest);
 //        for (User user: users
 //             ) {
 //            if (username.equals(user.getName())){
@@ -275,17 +284,7 @@ public class  Client extends Listener implements ClientInterface {
 		Order order = new Order(user);
 		order.setDishes(basket);
 		user.getOrders().add(order);
-		StringBuilder orderString = new StringBuilder("ORDER:");
-		orderString.append(user.getName()+ ":");
-		for(Map.Entry<Dish, Number> cursor : basket.entrySet()){
-		    orderString.append(cursor.getValue()+" * "+cursor.getKey()+ ",");
-        }
-        System.out.println(orderString.toString());
-
-		Comms orderRequest = new Comms(orderString.toString());
-		orderRequest.setOrderRequest(true);
-
-		client.sendTCP(orderRequest);
+		client.requestOrder(user, basket);
 
 
 
@@ -337,7 +336,7 @@ public class  Client extends Listener implements ClientInterface {
         User user = loggedInUser;
         user.getOrders().remove(order);
 		System.out.println(user.getOrders().isEmpty());
-		client.sendTCP(order);
+		client.cancelOrder(order);
         this.notifyUpdate();
 	}
 
@@ -372,6 +371,19 @@ public class  Client extends Listener implements ClientInterface {
 	    this.notifyUpdate();
     }
 
+	public User getLoggedInUser() {
+		return loggedInUser;
+	}
 
+	public void setLoggedInUser(User loggedInUser) {
+		this.loggedInUser = loggedInUser;
+	}
 
+	public boolean isLoggedIn() {
+		return loggedIn;
+	}
+
+	public void setLoggedIn(boolean loggedIn) {
+		this.loggedIn = loggedIn;
+	}
 }
