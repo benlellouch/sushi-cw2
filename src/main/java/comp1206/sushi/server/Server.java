@@ -231,12 +231,16 @@ public class Server implements ServerInterface  {
 	
 	@Override
 	public Number getOrderCost(Order order) {
-	    double cost = 0;
-		Map<Dish, Number> dishes = order.getDishes();
+	    double cost = order.getCost();
 
-        for (Entry<Dish, Number> cursor: dishes.entrySet()) {
-            cost += (cursor.getKey().getPrice().doubleValue()) * (cursor.getValue().doubleValue());
-        }
+	    if(cost == 0) {
+			Map<Dish, Number> dishes = order.getDishes();
+
+			for (Entry<Dish, Number> cursor : dishes.entrySet()) {
+				cost += (cursor.getKey().getPrice().doubleValue()) * (cursor.getValue().doubleValue());
+			}
+			order.setCost(cost);
+		}
         return  cost;
 	}
 
@@ -342,10 +346,16 @@ public class Server implements ServerInterface  {
 	public void loadConfiguration(String filename) {
 	    System.out.println("Loaded configuration: " + filename);
         dishes.clear();
+        for (Drone drone : drones){
+			drone.setEnabled(false);
+		}
         drones.clear();
         ingredients.clear();
         orders.clear();
         users.clear();
+        for (Staff staff : staff){
+        	staff.setEnable(false);
+		}
         staff.clear();
         stock.getIngredientStock().clear();
         stock.getDishStock().clear();

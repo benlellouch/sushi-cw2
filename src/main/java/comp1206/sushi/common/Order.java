@@ -15,6 +15,7 @@ public class Order extends Model implements Serializable {
 	private User user;
 	private Map<Dish, Number> dishes;
 	private OrderStatus orderStatus;
+	private double cost;
 
 	public Order(){}
 	
@@ -25,6 +26,7 @@ public class Order extends Model implements Serializable {
 		this.user = user;
 		this.dishes = new HashMap<>();
 		this.setStatus(OrderStatus.BEING_PREPARED);
+		cost = 0;
 
 	}
 
@@ -82,6 +84,14 @@ public class Order extends Model implements Serializable {
 			this.setStatus(OrderStatus.COMPLETED);
 		}
 
+	}
+
+	public double getCost() {
+		return cost;
+	}
+
+	public void setCost(double cost) {
+		this.cost = cost;
 	}
 
 	public enum OrderStatus{

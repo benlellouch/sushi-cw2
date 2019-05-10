@@ -28,7 +28,7 @@ public class Drone extends Model implements Runnable, Serializable {
 	private transient float destinationRestaurantDistance;
 
 	private transient DroneStatus droneStatus;
-	private boolean enabled;
+	private volatile boolean enabled;
 
 	private transient Server server;
 
@@ -49,19 +49,26 @@ public class Drone extends Model implements Runnable, Serializable {
 //		this.orderTask = new OrderTask();
 //		this.orderTask.add(order);
 		this.setStatus(DroneStatus.IDLE);
+		enabled = true;
 
 	}
 
 	public synchronized void run(){
-		enabled = true;
+
 
 			while (enabled) {
 
 				if (droneStatus == DroneStatus.IDLE) {
 
-					if (battery.intValue() == 0){
+					if (battery.intValue() < 100){
 						recharge();
 						this.setStatus(DroneStatus.IDLE);
+					}
+
+					try{
+						Thread.sleep(1000);
+					}catch (InterruptedException e){
+
 					}
 
 					synchronized (server) {
@@ -81,6 +88,8 @@ public class Drone extends Model implements Runnable, Serializable {
                                         this.setStatus(DroneStatus.DELIVERING_ORDER);
 										System.out.println("This order has an empty dish list? : " + order.getDishes().isEmpty());
 										prepareOrder(order);
+									} else if(!orderReady){
+										partiallyPrepareOrder(order);
 									}
 
 								}
@@ -287,6 +296,22 @@ public class Drone extends Model implements Runnable, Serializable {
         distanceToRestaurant = 0;
 	}
 
+	public synchronized void partiallyPrepareOrder(Order order){
+		Map<Dish,Number> dishesFromOrder = order.getDishes();
+
+		for (Map.Entry<Dish, Number> cursor : dishesFromOrder.entrySet()){
+			int currentDishStock = server.getDishStock().get(cursor.getKey()).intValue();
+			int orderValue = cursor.getValue().intValue();
+			System.out.println(order.getUser() + "'s Order used to have " + cursor.getKey().getName() + " with " + cursor.getValue());
+			cursor.setValue(orderValue - currentDishStock);
+			System.out.println(order.getUser() + "'s Order now has " + cursor.getKey().getName() + " with " + cursor.getValue());
+			server.setDishStock(cursor.getKey(), 0);
+		}
+	}
+
+
+
+
 
 
 	public Number getSpeed() {
@@ -410,5 +435,9 @@ public class Drone extends Model implements Runnable, Serializable {
 
 	public void setServer(Server server){
 		this.server = server;
+	}
+
+	public void setEnabled(boolean enabled){
+		this.enabled = enabled;
 	}
 }
