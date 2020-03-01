@@ -1,4 +1,4 @@
-# COMP1206: Sushi Coursework 1
+# COMP1206: Sushi Coursework 2
 - You must keep the packages as provided. You may add new packages or add to them, but not change the names of the provided packages.
 - You must not change the names of the provided classes
 - You must not change the names of the provided methods
